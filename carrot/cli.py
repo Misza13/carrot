@@ -17,7 +17,10 @@ def main():
 
     args = ap.parse_args()
 
-    args.func(args)
+    if hasattr(args, 'func'):
+        args.func(args)
+    else:
+        ap.print_help()
 
 
 class Command(object):
