@@ -7,7 +7,8 @@ def main():
     commands = [
         StatusCommand(),
         ListCommand(),
-        InstallCommand()
+        InstallCommand(),
+        InitCommand()
     ]
 
     ap = ArgumentParser(prog='carrot')
@@ -59,6 +60,23 @@ class ListCommand(Command):
             help='List mods installed in current directory')
 
         parser.set_defaults(func=self.handle_args)
+
+
+class InitCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'init',
+            help='Initialize a mod repo in current directory.'
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        if self.carrot.initialized():
+            print('ERROR! This directory is already a mod repo.')
+        else:
+            self.carrot.initialize()
+            print('Repo initialized.')
 
 
 class InstallCommand(Command):

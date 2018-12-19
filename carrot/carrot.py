@@ -11,3 +11,13 @@ class Carrot:
             return True
         else:
             return False
+
+    def initialize(self):
+        config = CarrotConfiguration()
+        with open(MODS_FILE_NAME, 'w+') as cf:
+            cf.write(config.to_json())
+
+
+class CarrotConfiguration:
+    def to_json(self):
+        return '{}'
