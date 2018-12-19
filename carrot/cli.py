@@ -1,5 +1,7 @@
 from argparse import ArgumentParser
 
+from carrot.carrot import Carrot
+
 
 def main():
     commands = [
@@ -24,6 +26,8 @@ def main():
 
 
 class Command(object):
+    carrot = Carrot()
+
     def register_help(self, subparsers):
         raise NotImplementedError()
 
@@ -38,6 +42,14 @@ class StatusCommand(Command):
             help='Display a summary of current mod directory')
 
         parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        if self.carrot.initialized():
+            print('Mod repo status: OK')
+        else:
+            print('Mod repo status: INVALID')
+            print('This directory does not appear to be a valid mod repo.')
+
 
 
 class ListCommand(Command):
