@@ -15,6 +15,8 @@ class InstalledModModel(Automappable):
         self.key = Autoproperty(str)
         self.id = Autoproperty(int)
         self.name = Autoproperty(str)
+        self.owner = Autoproperty(str)
+        self.blurb = Autoproperty(str)
         self.mod_source = Autoproperty(str)
         self.installed_as = Autoproperty(str)
         self.file = Autoproperty(ModFileModel)
@@ -22,4 +24,8 @@ class InstalledModModel(Automappable):
 
 class ModFileModel(Automappable):
     def __init__(self):
+        self.id = Autoproperty(int)
         self.file_name = Autoproperty(str)
+        self.file_md5 = Autoproperty(str)
+        self.release_type = Autoproperty(str)
+        self.mod_dependencies = Autoproperty(list, [])
