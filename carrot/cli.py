@@ -91,7 +91,7 @@ class InitCommand(Command):
         if self.carrot.initialized():
             print('ERROR! This directory is already a mod repo.')
         else:
-            self.carrot.initialize(args.name, args.mc_version, args.channel)
+            self.carrot.initialize(vars(args))
             print('Repo initialized.')
 
 
