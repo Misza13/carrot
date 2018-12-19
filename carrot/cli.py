@@ -69,13 +69,29 @@ class InitCommand(Command):
             help='Initialize a mod repo in current directory.'
         )
 
+        parser.add_argument(
+            '--name',
+            help='Name of this repo/modpack'
+        )
+        parser.add_argument(
+            '--mc_version',
+            help='Minecraft version',
+            required=True
+        )
+        parser.add_argument(
+            '--channel',
+            help='Mod release channel',
+            choices=['Alpha', 'Beta', 'Release'],
+            default='Beta'
+        )
+
         parser.set_defaults(func=self.handle_args)
 
     def handle_args(self, args):
         if self.carrot.initialized():
             print('ERROR! This directory is already a mod repo.')
         else:
-            self.carrot.initialize()
+            self.carrot.initialize(args.name, args.mc_version, args.channel)
             print('Repo initialized.')
 
 

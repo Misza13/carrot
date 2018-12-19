@@ -1,6 +1,8 @@
 import os
 import json
 
+from carrot.model import CarrotConfiguration
+
 MODS_FILE_NAME = 'mods.json'
 
 
@@ -12,12 +14,7 @@ class Carrot:
         else:
             return False
 
-    def initialize(self):
-        config = CarrotConfiguration()
+    def initialize(self, name, mc_version, channel):
+        config = CarrotConfiguration(name, mc_version, channel)
         with open(MODS_FILE_NAME, 'w+') as cf:
-            cf.write(config.to_json())
-
-
-class CarrotConfiguration:
-    def to_json(self):
-        return '{}'
+            cf.write(json.dumps(config.to_object(), indent=True))
