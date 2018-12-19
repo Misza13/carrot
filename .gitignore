@@ -1,0 +1,6 @@
+venv/
+build/
+carrot.egg-info/
+dist/
+
+.idea/
