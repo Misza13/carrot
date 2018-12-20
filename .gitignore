@@ -4,5 +4,6 @@ venv/
 build/
 carrot.egg-info/
 dist/
+**/__pycache__/
 
 .idea/

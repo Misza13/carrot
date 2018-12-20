@@ -107,6 +107,9 @@ class InstallCommand(Command):
                  'If no mod matches exactly, a list of possible matches will be displayed.')
 
         parser.set_defaults(func=self.handle_args)
+    
+    def handle_args(self, args):
+        self.carrot.install(args.mod_key, '1.12.2')
 
 
 if __name__ == '__main__':

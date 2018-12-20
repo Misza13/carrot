@@ -22,6 +22,13 @@ class InstalledModModel(Automappable):
         self.file = Autoproperty(ModFileModel)
 
 
+class ModModel(InstalledModModel):
+    def __init__(self):
+        super().__init__()
+        self.download_count = Autoproperty(int)
+        self.categories = Autoproperty(list, [])
+
+
 class ModFileModel(Automappable):
     def __init__(self):
         self.id = Autoproperty(int)
