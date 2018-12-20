@@ -109,7 +109,7 @@ class InstallCommand(Command):
         parser.set_defaults(func=self.handle_args)
     
     def handle_args(self, args):
-        self.carrot.install(args.mod_key, '1.12.2')
+        self.carrot.install(args.mod_key)
 
 
 if __name__ == '__main__':

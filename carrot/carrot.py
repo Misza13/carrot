@@ -10,14 +10,18 @@ MODS_FILE_NAME = 'mods.json'
 class Carrot:
     backend = BackendService()
     
-    def initialized(self):
+    def read_mods_file(self):
         if os.path.exists(MODS_FILE_NAME):
             with open(MODS_FILE_NAME, 'r') as cf:
                 data = json.loads(cf.read())
-                config = CarrotModel.from_dict(data)
-                return True
+                carrot = CarrotModel.from_dict(data)
+                return carrot
 
-        return False
+        return None
+    
+    def initialized(self):
+        carrot = self.read_mods_file()
+        return carrot is not None
 
     def initialize(self, data):
         config = CarrotModel.from_dict(data)
@@ -26,8 +30,13 @@ class Carrot:
         with open(MODS_FILE_NAME, 'w+') as cf:
             cf.write(json.dumps(d, indent=True))
     
-    def install(self, mod_key, mc_version):
-        mods = self.backend.search_by_mod_key(mod_key, mc_version)
+    def install(self, mod_key):
+        carrot = self.read_mods_file()
+        if not carrot:
+            print('Mod repo not initialized. Use "carrot init".')
+            return
+        
+        mods = self.backend.search_by_mod_key(mod_key, carrot.mc_version)
         
         if not mods:
             print('No matches found, please verify mod key specified or use "carrot search" to find a mod to install.')
