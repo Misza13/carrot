@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from carrot.carrot import Carrot
+from carrot.carrot import CarrotService
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
 
 
 class Command(object):
-    carrot = Carrot()
+    carrot_service = CarrotService()
 
     def register_help(self, subparsers):
         raise NotImplementedError()
@@ -45,7 +45,7 @@ class StatusCommand(Command):
         parser.set_defaults(func=self.handle_args)
 
     def handle_args(self, args):
-        if self.carrot.initialized():
+        if self.carrot_service.initialized():
             print('Mod repo status: OK')
         else:
             print('Mod repo status: INVALID')
@@ -88,10 +88,10 @@ class InitCommand(Command):
         parser.set_defaults(func=self.handle_args)
 
     def handle_args(self, args):
-        if self.carrot.initialized():
+        if self.carrot_service.initialized():
             print('ERROR! This directory is already a mod repo.')
         else:
-            self.carrot.initialize(vars(args))
+            self.carrot_service.initialize(vars(args))
             print('Repo initialized.')
 
 
@@ -109,7 +109,7 @@ class InstallCommand(Command):
         parser.set_defaults(func=self.handle_args)
     
     def handle_args(self, args):
-        self.carrot.install(args.mod_key)
+        self.carrot_service.install(args.mod_key)
 
 
 if __name__ == '__main__':

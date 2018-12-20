@@ -7,7 +7,7 @@ from carrot.backend import BackendService
 MODS_FILE_NAME = 'mods.json'
 
 
-class Carrot:
+class CarrotService:
     backend = BackendService()
     
     def read_mods_file(self):
