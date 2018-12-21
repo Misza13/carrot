@@ -106,10 +106,27 @@ class InstallCommand(Command):
             help='"Key" id of a mod *exactly* as used in e.g. CurseForge URLs. '
                  'If no mod matches exactly, a list of possible matches will be displayed.')
 
+        parser.add_argument(
+            '--channel',
+            help='Specify channel (Alpha/Beta/Release) to use when installing. '
+                 'Overrides settings from mods.json.',
+            choices=['Alpha', 'Beta', 'Release'],
+            default=None
+        )
+
+        parser.add_argument(
+            '--allow-downgrade',
+            help='Specify that a downgrade to an older version is allowed. '
+                 'This can happen e.g. if you explicitly request a Release channel but '
+                 'already have a newer Beta file installed.',
+            nargs='?',
+            const=True
+        )
+
         parser.set_defaults(func=self.handle_args)
     
     def handle_args(self, args):
-        self.carrot_service.install(args.mod_key)
+        self.carrot_service.install(args)
 
 
 if __name__ == '__main__':

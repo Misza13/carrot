@@ -45,36 +45,41 @@ class CarrotService:
         with open(MODS_FILE_NAME, 'w+') as cf:
             cf.write(json.dumps(d, indent=True))
     
-    def install(self, mod_key: str):
+    def install(self, args):
         carrot = self.read_carrot()
         if not carrot:
             print('Mod repo not initialized. Use "carrot init".')
             return
 
-        mods = self.backend.search_by_mod_key(mod_key, carrot.mc_version)
+        if args.channel:
+            channel = args.channel
+        else:
+            channel = carrot.channel
+
+        mods = self.backend.search_by_mod_key(args.mod_key, carrot.mc_version)
         
         if not mods:
             print('No matches found, please verify mod key specified or use "carrot search" to find a mod to install.')
             return
 
-        exact_match = find_mod_by_key(mods, mod_key)
+        exact_match = find_mod_by_key(mods, args.mod_key)
 
         if exact_match:
             print('Found exact match')
 
             im = InstallationManager()
             im.queue_fetch(FetchRequest(
-                mod_key=mod_key,
+                mod_key=args.mod_key,
                 mc_version=carrot.mc_version,
-                channel=carrot.channel, # TODO: Override via option
+                channel=channel,
                 dependency=False
             ))
-            im.run(carrot)
+            im.run(carrot, args)
 
             self.save_carrot(carrot)
 
         else:
-            print(f'No mod found in top downloaded mods matching exactly the key "{mod_key}". These are the top downloaded matches:')
+            print(f'No mod found in top downloaded mods matching exactly the key "{args.mod_key}". These are the top downloaded matches:')
             for mod in mods:
                 print(f'{colorify(mod.key, WHITE+BRIGHT)} {colorify(mod.name, YELLOW+BRIGHT)} by {colorify(mod.owner, GREEN+BRIGHT)}')
                 print(f'\t{colorify(mod.blurb, WHITE)}')
@@ -99,7 +104,7 @@ class InstallationManager:
     def queue_install(self, request: InstallRequest):
         self.install_q.put(item=request)
 
-    def run(self, carrot: CarrotModel):
+    def run(self, carrot: CarrotModel, args):
         while not self.fetch_q.empty():
             req = self.fetch_q.get()
 
@@ -130,10 +135,14 @@ class InstallationManager:
                 proceed = False
 
             else:
-                print(colorify('The impossible happened! The current file is newer!', RED+BRIGHT), end='')
-                # TODO: resolve when channel override becomes a thing
+                if args.allow_downgrade:
+                    print('An older file was found but will perform as downgrade because it\'s allowed. ', end='')
 
-                proceed = False
+                    proceed = True
+                else:
+                    print(f'An older file was found but downgrades are disabled by default. Use the {colorify("--allow-downgrade", RED+BRIGHT)} option if this was intended. ', end='')
+
+                    proceed = False
 
             if proceed:
                 self.download_q.put(DownloadRequest(
@@ -182,7 +191,7 @@ class InstallationManager:
                 self.move_file_from_cache_to_content(new_mod.file.file_name)
 
             else:
-                print(f'Updating mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with newer file {colorify(req.mod_info.file.file_name, RED)}...')
+                print(f'Updating mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with file {colorify(req.mod_info.file.file_name, RED)}...')
 
                 # TODO: Check/update dependency status
                 replace_mod_by_key(carrot.mods, req.mod_info.key, new_mod)
