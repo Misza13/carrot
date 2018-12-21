@@ -40,7 +40,8 @@ class StatusCommand(Command):
     def register_help(self, subparsers):
         parser = subparsers.add_parser(
             'status',
-            help='Display a summary of current mod directory')
+            help='Display a summary of current mod directory'
+        )
 
         parser.set_defaults(func=self.handle_args)
 
@@ -57,7 +58,8 @@ class ListCommand(Command):
     def register_help(self, subparsers):
         parser = subparsers.add_parser(
             'list',
-            help='List mods installed in current directory')
+            help='List mods installed in current directory'
+        )
 
         parser.set_defaults(func=self.handle_args)
 
@@ -73,11 +75,13 @@ class InitCommand(Command):
             '--name',
             help='Name of this repo/modpack'
         )
+
         parser.add_argument(
             '--mc_version',
             help='Minecraft version',
             required=True
         )
+
         parser.add_argument(
             '--channel',
             help='Mod release channel',
@@ -99,12 +103,14 @@ class InstallCommand(Command):
     def register_help(self, subparsers):
         parser = subparsers.add_parser(
             'install',
-            help='Install a mod and its dependencies')
+            help='Install a mod and its dependencies'
+        )
 
         parser.add_argument(
             'mod_key',
             help='"Key" id of a mod *exactly* as used in e.g. CurseForge URLs. '
-                 'If no mod matches exactly, a list of possible matches will be displayed.')
+                 'If no mod matches exactly, a list of possible matches will be displayed.'
+        )
 
         parser.add_argument(
             '--channel',
