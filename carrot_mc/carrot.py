@@ -163,6 +163,8 @@ class InstallationManager:
 
             current_mod = find_mod_by_key(carrot.mods, mod_info.key)
 
+            # TODO: Handling of "sticky" channel
+
             if not current_mod:
                 print('New mod. ', end='')
 

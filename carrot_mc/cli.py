@@ -6,7 +6,7 @@ from carrot_mc.carrot import CarrotService
 def main():
     commands = [
         StatusCommand(),
-        ListCommand(),
+        #ListCommand(),
         InstallCommand(),
         InitCommand(),
         UpdateCommand()
@@ -49,10 +49,11 @@ class StatusCommand(Command):
     def handle_args(self, args):
         if self.carrot_service.initialized():
             print('Mod repo status: OK')
+
+            # TODO: List more useful info, e.g. # of mods, validate files exists, their MD5s etc.
         else:
             print('Mod repo status: INVALID')
             print('This directory does not appear to be a valid mod repo.')
-
 
 
 class ListCommand(Command):
@@ -63,6 +64,8 @@ class ListCommand(Command):
         )
 
         parser.set_defaults(func=self.handle_args)
+
+        # TODO: Implement
 
 
 class InitCommand(Command):
