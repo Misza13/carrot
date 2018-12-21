@@ -14,6 +14,7 @@ MODS_FILE_NAME = 'mods.json'
 
 
 FetchRequest = namedtuple('FetchRequest', ['mod_key', 'mc_version', 'channel', 'dependency'])
+DownloadRequest = namedtuple('DownloadRequest', ['mod_info', 'dependency'])
 InstallRequest = namedtuple('InstallRequest', ['mod_info', 'dependency'])
 
 
@@ -50,8 +51,6 @@ class CarrotService:
             print('Mod repo not initialized. Use "carrot init".')
             return
 
-        # TODO: Test if already installed
-        
         mods = self.backend.search_by_mod_key(mod_key, carrot.mc_version)
         
         if not mods:
@@ -88,42 +87,87 @@ class InstallationManager:
         self.backend = BackendService()
 
         self.fetch_q = Queue()
+        self.download_q = Queue()
         self.install_q = Queue()
 
     def queue_fetch(self, request: FetchRequest):
         self.fetch_q.put(item=request)
 
+    def queue_download(self, request: DownloadRequest):
+        self.download_q.put(item=request)
+
+    def queue_install(self, request: InstallRequest):
+        self.install_q.put(item=request)
+
     def run(self, carrot: CarrotModel):
         while not self.fetch_q.empty():
             req = self.fetch_q.get()
 
-            mod = self.backend.get_mod_info(req.mod_key)
+            print(f'Checking mod {colorify(req.mod_key, WHITE+BRIGHT)}... ', end='')
 
-            if req.dependency:
-                print(f'Fetching mod {colorify(mod.key, WHITE+BRIGHT)} as dependency...')
+            mod_info = self.backend.get_mod_info(req.mod_key)
+
+            print(colorify(mod_info.name + '... ', WHITE+BRIGHT), end='')
+
+            mod_info.file = self.backend.get_newest_file_info(req.mod_key, req.mc_version, req.channel)
+
+            current_mod = find_mod_by_key(carrot.mods, mod_info.key)
+
+            if not current_mod:
+                print('New mod. ', end='')
+
+                proceed = True
+
+            elif current_mod.file.id < mod_info.file.id:
+                print('Already installed but found newer version. ', end='')
+
+                # TODO: Should this be the default behaviour?
+                proceed = True
+
+            elif current_mod.file.id == mod_info.file.id:
+                print('Already at newest version. ', end='')
+
+                proceed = False
+
             else:
-                print(f'Fetching mod {colorify(mod.key, WHITE+BRIGHT)}...')
+                print(colorify('The impossible happened! The current file is newer!', RED+BRIGHT), end='')
+                # TODO: resolve when channel override becomes a thing
 
-            mod.file = self.backend.get_newest_file_info(req.mod_key, req.mc_version, req.channel)
+                proceed = False
 
-            # TODO: Do it more cleverly - no need to d/l a file if we will not update it
-            file_contents = self.backend.download_file(mod.file.download_url)
-            self.put_file_in_cache(file_contents, mod.file.file_name)
-
-            self.install_q.put(InstallRequest(
-                mod_info=mod,
-                dependency=req.dependency
-            ))
-
-            for dep in mod.file.mod_dependencies:
-                self.queue_fetch(FetchRequest(
-                    mod_key=dep,
-                    mc_version=req.mc_version,
-                    channel=req.channel,
-                    dependency=True
+            if proceed:
+                self.download_q.put(DownloadRequest(
+                    mod_info=mod_info,
+                    dependency=req.dependency
                 ))
 
-        print('Fetch phase complete. Proceeding to installation...')
+                self.install_q.put(InstallRequest(
+                    mod_info=mod_info,
+                    dependency=req.dependency
+                ))
+
+                if mod_info.file.mod_dependencies:
+                    print('Detected dependencies. ', end='')
+
+                    for dep in mod_info.file.mod_dependencies:
+                        self.queue_fetch(FetchRequest(
+                            mod_key=dep,
+                            mc_version=req.mc_version,
+                            channel=req.channel,
+                            dependency=True
+                        ))
+
+            print('\n')
+
+        print('Mod check phase complete. Proceeding to download...')
+
+        while not self.download_q.empty():
+            req = self.download_q.get()
+            print(f'Downloading file {colorify(req.mod_info.file.file_name, RED)} from {colorify(req.mod_info.file.download_url, BLUE)}...')
+            file_contents = self.backend.download_file(req.mod_info.file.download_url)
+            self.put_file_in_cache(file_contents, req.mod_info.file.file_name)
+
+        print('Download phase complete. Proceeding to installation...')
 
         while not self.install_q.empty():
             req = self.install_q.get()
@@ -132,15 +176,12 @@ class InstallationManager:
             new_mod = InstalledModModel.from_dict(req.mod_info.to_dict())
 
             if not current_mod:
-                # Installing a completely new mod
                 print(f'Installing mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with file {colorify(req.mod_info.file.file_name, RED)}...')
                 carrot.mods.append(new_mod)
 
                 self.move_file_from_cache_to_content(new_mod.file.file_name)
 
-            elif current_mod.file.id < req.mod_info.file.id:
-                # Updating an already installed mod
-                # TODO: Should this be the default behaviour?
+            else:
                 print(f'Updating mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with newer file {colorify(req.mod_info.file.file_name, RED)}...')
 
                 # TODO: Check/update dependency status
@@ -148,18 +189,6 @@ class InstallationManager:
 
                 self.delete_file(current_mod.file.file_name)
                 self.move_file_from_cache_to_content(req.mod_info.file.file_name)
-
-            elif current_mod.file.id == req.mod_info.file.id:
-                # Already at newest version
-                # TODO: What if the downloaded file is older because of channel override?
-                print(f'Skipping mod {colorify(req.mod_info.name, WHITE + BRIGHT)} due to file {colorify(req.mod_info.file.file_name, RED)} being up to date.')
-
-                # TODO: Do check/update, however the dependency status
-
-            else:
-                # Not yet possible, TODO: resolve when channel override becomes a thing
-                print('The impossible happened! An older file was downloaded for mod {colorify(req.mod_info.name, WHITE + BRIGHT)}!')
-                raise NotImplementedError
 
         print('Installation phase complete.')
 
