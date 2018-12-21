@@ -1,5 +1,8 @@
 mods.json
 
+.carrot_cache/
+*.jar
+
 venv/
 build/
 carrot.egg-info/

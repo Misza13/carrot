@@ -10,19 +10,24 @@ class CarrotModel(Automappable):
         self.mods = Autoproperty(InstalledModModel, [], True)
 
 
-class InstalledModModel(Automappable):
+class BaseModModel(Automappable):
     def __init__(self):
         self.key = Autoproperty(str)
         self.id = Autoproperty(int)
         self.name = Autoproperty(str)
         self.owner = Autoproperty(str)
         self.blurb = Autoproperty(str)
-        self.mod_source = Autoproperty(str)
-        self.installed_as = Autoproperty(str)
         self.file = Autoproperty(ModFileModel)
 
 
-class ModModel(InstalledModModel):
+class InstalledModModel(BaseModModel):
+    def __init__(self):
+        super().__init__()
+        self.mod_source = Autoproperty(str)
+        self.installed_as = Autoproperty(str)
+
+
+class ModModel(BaseModModel):
     def __init__(self):
         super().__init__()
         self.download_count = Autoproperty(int)
@@ -32,6 +37,7 @@ class ModModel(InstalledModModel):
 class ModFileModel(Automappable):
     def __init__(self):
         self.id = Autoproperty(int)
+        self.download_url = Autoproperty(str)
         self.file_name = Autoproperty(str)
         self.file_md5 = Autoproperty(str)
         self.release_type = Autoproperty(str)

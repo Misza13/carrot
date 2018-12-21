@@ -1,3 +1,5 @@
+import json
+
 def object_to_dict_nested(obj):
     if isinstance(obj, Automappable):
         d = {}
@@ -66,3 +68,6 @@ class Automappable(object):
                 super().__setattr__(name, value)
         except AttributeError:
             super().__setattr__(name, value)
+
+    def __repr__(self):
+        return json.dumps(self.to_dict())
