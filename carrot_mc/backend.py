@@ -1,6 +1,6 @@
 import requests
 
-from carrot.model import ModModel, ModFileModel
+from carrot_mc.model import ModModel, ModFileModel
 
 API_ENDPOINT = 'https://ddph1n5l22.execute-api.eu-central-1.amazonaws.com/dev/'
 

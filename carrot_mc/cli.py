@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, SUPPRESS
 
-from carrot.carrot import CarrotService
+from carrot_mc.carrot import CarrotService
 
 
 def main():

@@ -5,9 +5,9 @@ from collections import namedtuple
 
 from queue import Queue
 
-from carrot.model import CarrotModel, InstalledModModel, BaseModModel
-from carrot.backend import BackendService
-from carrot.colors import *
+from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel
+from carrot_mc.backend import BackendService
+from carrot_mc.colors import *
 
 
 MODS_FILE_NAME = 'mods.json'

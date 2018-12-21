@@ -1,4 +1,4 @@
-from carrot.data import Automappable, Autoproperty
+from carrot_mc.data import Automappable, Autoproperty
 
 
 class CarrotModel(Automappable):

@@ -5,7 +5,7 @@ mods.json
 
 venv/
 build/
-carrot.egg-info/
+carrot_mc.egg-info/
 dist/
 **/__pycache__/
 
