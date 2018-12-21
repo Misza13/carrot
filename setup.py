@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='carrot_mc',
-    version='0.2',
+    version='0.3',
     description='Command-line Minecraft mod manager',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -19,6 +19,9 @@ setup(
             'carrot = carrot_mc.cli:main'
         ]
     },
+    install_requires=[
+        'requests',
+    ],
     classifiers=[
         'Programming Language :: Python :: 3.3',
         'Topic :: Games/Entertainment'
