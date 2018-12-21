@@ -115,7 +115,16 @@ class InstallCommand(Command):
         )
 
         parser.add_argument(
-            '--allow-downgrade',
+            '--upgrade',
+            help='Specify that upgrading mods to newer versions is allowed. '
+                 'By default when a mod or dependency is already installed and a new version is found '
+                 'during installation, it will be skipped for safety reasons.',
+            nargs='?',
+            const=True
+        )
+
+        parser.add_argument(
+            '--downgrade',
             help='Specify that a downgrade to an older version is allowed. '
                  'This can happen e.g. if you explicitly request a Release channel but '
                  'already have a newer Beta file installed.',

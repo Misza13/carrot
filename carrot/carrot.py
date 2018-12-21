@@ -108,7 +108,7 @@ class InstallationManager:
         while not self.fetch_q.empty():
             req = self.fetch_q.get()
 
-            print(f'Checking mod {colorify(req.mod_key, WHITE+BRIGHT)}... ', end='')
+            print(f'Checking mod {colorify(str(req.mod_key), WHITE+BRIGHT)}... ', end='')
 
             mod_info = self.backend.get_mod_info(req.mod_key)
 
@@ -124,10 +124,18 @@ class InstallationManager:
                 proceed = True
 
             elif current_mod.file.id < mod_info.file.id:
-                print('Already installed but found newer version. ', end='')
+                if args.upgrade:
+                    print('Mod already installed, found new version and will upgrade because it\'s allowed. ', end='')
 
-                # TODO: Should this be the default behaviour?
-                proceed = True
+                    proceed = True
+
+                else:
+                    print(f'A newer file was found but upgrades are disabled by default. Use the {colorify("--upgrade", RED+BRIGHT)} option if this should be allowed. ', end='')
+
+                    if req.dependency:
+                        print(f'\n{colorify("NOTE", RED+BRIGHT)}: Because this is a dependency, it will {colorify("not", BRIGHT)} be re-checked if you re-run last install command. Use "{colorify("carrot update " + mod_info.key, YELLOW+BRIGHT)}" to do it explicitly. ', end='')
+
+                    proceed = False
 
             elif current_mod.file.id == mod_info.file.id:
                 print('Already at newest version. ', end='')
@@ -135,12 +143,12 @@ class InstallationManager:
                 proceed = False
 
             else:
-                if args.allow_downgrade:
-                    print('An older file was found but will perform as downgrade because it\'s allowed. ', end='')
+                if args.downgrade:
+                    print('Mod already installed, found older version and will downgrade because it\'s allowed. ', end='')
 
                     proceed = True
                 else:
-                    print(f'An older file was found but downgrades are disabled by default. Use the {colorify("--allow-downgrade", RED+BRIGHT)} option if this was intended. ', end='')
+                    print(f'An older file was found but downgrades are disabled by default. Use the {colorify("--downgrade", RED+BRIGHT)} option if this was intended. ', end='')
 
                     proceed = False
 
@@ -166,7 +174,7 @@ class InstallationManager:
                             dependency=True
                         ))
 
-            print('\n')
+            print('')
 
         print('Mod check phase complete. Proceeding to download...')
 
