@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='carrot_mc',
-    version='0.3.1',
+    version='0.3.2',
     description='Command-line Minecraft mod manager',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -23,7 +23,8 @@ setup(
         'requests',
     ],
     classifiers=[
-        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Games/Entertainment'
     ]
 )
