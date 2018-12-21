@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
 
 from carrot.carrot import CarrotService
 
@@ -8,7 +8,8 @@ def main():
         StatusCommand(),
         ListCommand(),
         InstallCommand(),
-        InitCommand()
+        InitCommand(),
+        UpdateCommand()
     ]
 
     ap = ArgumentParser(prog='carrot')
@@ -142,6 +143,51 @@ class InstallCommand(Command):
     
     def handle_args(self, args):
         self.carrot_service.install(args)
+
+
+class UpdateCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'update',
+            help='Update a currently-installed mod (and its dependencies) or all mods to newer/older version and/or different channel.'
+        )
+
+        parser.add_argument(
+            'mod_key',
+            help='"Key" id of a mod to update (along with its dependencies).',
+            nargs='?',
+            default=None
+        )
+
+        parser.add_argument(
+            '--channel',
+            help='Specify target channel (Alpha/Beta/Release) to use when updating. '
+                 'Overrides settings from mods.json.',
+            choices=['Alpha', 'Beta', 'Release'],
+            default=None
+        )
+
+        # Hidden "option" for compatibility in the installer logic
+        parser.add_argument(
+            '--upgrade',
+            help=SUPPRESS,
+            nargs='?',
+            default=True
+        )
+
+        parser.add_argument(
+            '--downgrade',
+            help='Specify that downgrades to an older version are allowed. '
+                 'This can happen e.g. if you explicitly request a Release channel but '
+                 'already have newer versions of mods from the Beta channel installed.',
+            nargs='?',
+            const=True
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        self.carrot_service.update(args)
 
 
 if __name__ == '__main__':

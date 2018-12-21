@@ -24,7 +24,7 @@ class InstalledModModel(BaseModModel):
     def __init__(self):
         super().__init__()
         self.mod_source = Autoproperty(str)
-        self.installed_as = Autoproperty(str)
+        self.dependency = Autoproperty(bool)
 
 
 class ModModel(BaseModModel):

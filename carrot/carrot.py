@@ -86,6 +86,51 @@ class CarrotService:
                 if mod.categories:
                     print('\t' + ', '.join([f'{colorify(c, BLUE+BRIGHT)}' for c in mod.categories]))
 
+    def update(self, args):
+        carrot = self.read_carrot()
+        if not carrot:
+            print('Mod repo not initialized. Use "carrot init".')
+            return
+
+        if args.channel:
+            channel = args.channel
+        else:
+            channel = carrot.channel
+
+        im = InstallationManager()
+
+        if args.mod_key:
+            exact_match = find_mod_by_key(carrot.mods, args.mod_key)
+
+            if not exact_match:
+                print(f'No mod matching exactly the key "{args.mod_key}" is currently installed.')
+                return
+
+            im.queue_fetch(FetchRequest(
+                mod_key=args.mod_key,
+                mc_version=carrot.mc_version,
+                channel=channel,
+                dependency=exact_match.dependency
+            ))
+
+        else:
+            if not carrot.mods:
+                print(f'No mods are installed. Use "{colorify("carrot install", YELLOW+BRIGHT)}" to install some.')
+                return
+
+            for mod in carrot.mods:
+                if not mod.dependency:
+                    im.queue_fetch(FetchRequest(
+                        mod_key=mod.key,
+                        mc_version=carrot.mc_version,
+                        channel=channel,
+                        dependency=False
+                    ))
+                    # TODO: How to purge dependencies that are no longer valid?
+
+        im.run(carrot, args)
+        self.save_carrot(carrot)
+
 
 class InstallationManager:
     def __init__(self):
@@ -191,6 +236,7 @@ class InstallationManager:
 
             current_mod = find_mod_by_key(carrot.mods, req.mod_info.key)
             new_mod = InstalledModModel.from_dict(req.mod_info.to_dict())
+            new_mod.dependency = req.dependency
 
             if not current_mod:
                 print(f'Installing mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with file {colorify(req.mod_info.file.file_name, RED)}...')
@@ -201,7 +247,10 @@ class InstallationManager:
             else:
                 print(f'Updating mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with file {colorify(req.mod_info.file.file_name, RED)}...')
 
-                # TODO: Check/update dependency status
+                # Prevent a user-installed mod from becoming a dependency
+                if not current_mod.dependency and new_mod.dependency:
+                    new_mod.dependency = False
+
                 replace_mod_by_key(carrot.mods, req.mod_info.key, new_mod)
 
                 self.delete_file(current_mod.file.file_name)
