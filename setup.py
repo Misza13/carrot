@@ -1,11 +1,13 @@
 from setuptools import setup
 
+from carrot_mc import meta
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='carrot_mc',
-    version='0.3.2',
+    version=meta.VERSION,
     description='Command-line Minecraft mod manager',
     long_description=long_description,
     long_description_content_type='text/markdown',
