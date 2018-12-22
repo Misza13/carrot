@@ -93,6 +93,14 @@ in names and descriptions of mods.
 will install both Tinkers' Construct itself as well as "Mantle", the
 library dependency.
 
+You can also install multiple mods at once by specifying their keys:
+
+    carrot install pams-harvestcraft cooking-for-blockheads
+
+In this mode, Carrot will not display suggestions if keys are not precise,
+but instead will simply inform you that the mod was not found and install
+only what it can find.
+
 In case of conflicts (e.g. different versions of dependencies either due to
 updates or pulling mods from different channels), Carrot will leave already
 installed files untouched (to ensure that nothing that already worked breaks),

@@ -113,7 +113,8 @@ class InstallCommand(Command):
         parser.add_argument(
             'mod_key',
             help='"Key" id of a mod *exactly* as used in e.g. CurseForge URLs. '
-                 'If no mod matches exactly, a list of possible matches will be displayed.'
+                 'If no mod matches exactly, a list of possible matches will be displayed.',
+            nargs='+'
         )
 
         parser.add_argument(

@@ -56,35 +56,50 @@ class CarrotService:
         else:
             channel = carrot.channel
 
-        mods = self.backend.search_by_mod_key(args.mod_key, carrot.mc_version)
-        
-        if not mods:
-            print('No matches found, please verify mod key specified or use "carrot search" to find a mod to install.')
-            return
+        im = InstallationManager()
 
-        exact_match = find_mod_by_key(mods, args.mod_key)
-
-        if exact_match:
-            print('Found exact match')
-
-            im = InstallationManager()
-            im.queue_fetch(FetchRequest(
-                mod_key=args.mod_key,
-                mc_version=carrot.mc_version,
-                channel=channel,
-                dependency=False
-            ))
-            im.run(carrot, args)
-
-            self.save_carrot(carrot)
+        if len(args.mod_key) > 1:
+            for mod_key in args.mod_key:
+                im.queue_fetch(FetchRequest(
+                    mod_key=mod_key,
+                    mc_version=carrot.mc_version,
+                    channel=channel,
+                    dependency=False
+                ))
 
         else:
-            print(f'No mod found in top downloaded mods matching exactly the key "{args.mod_key}". These are the top downloaded matches:')
-            for mod in mods:
-                print(f'{colorify(mod.key, WHITE+BRIGHT)} {colorify(mod.name, YELLOW+BRIGHT)} by {colorify(mod.owner, GREEN+BRIGHT)}')
-                print(f'\t{colorify(mod.blurb, WHITE)}')
-                if mod.categories:
-                    print('\t' + ', '.join([f'{colorify(c, BLUE+BRIGHT)}' for c in mod.categories]))
+            mod_key = args.mod_key[0]
+            mods = self.backend.search_by_mod_key(mod_key, carrot.mc_version)
+
+            if not mods:
+                print('No matches found, please verify mod key specified or use "carrot search" to find a mod to install.')
+                return
+
+            exact_match = find_mod_by_key(mods, mod_key)
+
+            if exact_match:
+                print('Found exact match')
+
+                im.queue_fetch(FetchRequest(
+                    mod_key=mod_key,
+                    mc_version=carrot.mc_version,
+                    channel=channel,
+                    dependency=False
+                ))
+
+            else:
+                print(f'No mod found in top downloaded mods matching exactly the key "{mod_key}". These are the top downloaded matches:')
+                for mod in mods:
+                    print(f'{colorify(mod.key, WHITE+BRIGHT)} {colorify(mod.name, YELLOW+BRIGHT)} by {colorify(mod.owner, GREEN+BRIGHT)}')
+                    print(f'\t{colorify(mod.blurb, WHITE)}')
+                    if mod.categories:
+                        print('\t' + ', '.join([f'{colorify(c, BLUE+BRIGHT)}' for c in mod.categories]))
+                return
+
+        im.run(carrot, args)
+
+        self.save_carrot(carrot)
+
 
     def update(self, args):
         carrot = self.read_carrot()
@@ -172,6 +187,10 @@ class InstallationManager:
         print(f'Checking mod {colorify(str(req.mod_key), WHITE + BRIGHT)}...', end=' ')
 
         mod_info = self.backend.get_mod_info(req.mod_key)
+
+        if not mod_info.key:
+            print(colorify('Not found!', RED+BRIGHT))
+            return
 
         print(colorify(mod_info.name + '...', WHITE + BRIGHT), end=' ')
 
