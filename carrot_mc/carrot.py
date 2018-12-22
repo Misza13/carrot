@@ -268,6 +268,7 @@ class InstallationManager:
             if not current_mod.dependency and new_mod.dependency:
                 new_mod.dependency = False
 
+            # TODO: Handle .disabled mods
             replace_mod_by_key(carrot.mods, req.mod_info.key, new_mod)
 
             self.delete_file(current_mod.file.file_name)
