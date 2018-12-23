@@ -155,6 +155,9 @@ class InstallationManager:
         self.download_q = Queue()
         self.install_q = Queue()
 
+        self._download_hist = set()
+        self._install_hist = set()
+
     def queue_fetch(self, request: FetchRequest):
         self.fetch_q.put(item=request)
 
@@ -265,11 +268,18 @@ class InstallationManager:
         print('')
 
     def do_download(self, req: DownloadRequest, carrot: CarrotModel, args):
+        if req.mod_info.file.file_name in self._download_hist:
+            return
+
         print(f'Downloading file {colorify(req.mod_info.file.file_name, RED)} from {colorify(req.mod_info.file.download_url, BLUE)}...')
         file_contents = self.backend.download_file(req.mod_info.file.download_url)
         self.put_file_in_cache(file_contents, req.mod_info.file.file_name)
+        self._download_hist.add(req.mod_info.file.file_name)
 
     def do_install(self, req: InstallRequest, carrot: CarrotModel, args):
+        if req.mod_info.file.file_name in self._install_hist:
+            return
+
         current_mod = find_mod_by_key(carrot.mods, req.mod_info.key)
         new_mod = InstalledModModel.from_dict(req.mod_info.to_dict())
         new_mod.dependency = req.dependency
@@ -292,6 +302,8 @@ class InstallationManager:
 
             self.delete_file(current_mod.file.file_name)
             self.move_file_from_cache_to_content(req.mod_info.file.file_name)
+
+        self._install_hist.add(req.mod_info.file.file_name)
 
     def put_file_in_cache(self, content: bytes, file_name: str):
         if not os.path.exists('.carrot_cache'):
