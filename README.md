@@ -117,10 +117,12 @@ In its simplest form:
 Carrot will attempt to update all currently installed mods (along with their
 dependencies) to their newest versions.
 
-**Note:** As of now, Carrot does not "sticky" the channel of a mod, so if
-you installed a mod explicitly in the `Release` channel, but the default
-in `mods.json` is `Beta`, the default `update` will update that mod to
-`Beta` (unless the newest available file is in `Release` channel).
+Carrot will use the same channel for a mod as the one used to install it,
+unless told so otherwise with `--channel`. This means that if, for example,
+your entire modpack is set to the `Beta` channel but one mod was installed
+explicitly with `--channel Alpha`, that one mod (as well as its dependencies)
+will be updated to the latest `Alpha` file but the rest of the mods will use
+the default of `Beta`
 
 You can request only a single mod (with dependencies) to be updated with:
 
