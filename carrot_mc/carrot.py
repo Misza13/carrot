@@ -299,17 +299,22 @@ class InstallationManager:
             self.move_file_from_cache_to_content(new_mod.file.file_name)
 
         else:
-            print(f'Updating mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with file {colorify(req.mod_info.file.file_name, RED)}...')
+            print(f'Updating mod {colorify(req.mod_info.name, WHITE + BRIGHT)}...', end=' ')
 
             # Prevent a user-installed mod from becoming a dependency
             if not current_mod.dependency and new_mod.dependency:
                 new_mod.dependency = False
 
-            # TODO: Handle .disabled mods
             replace_mod_by_key(carrot.mods, req.mod_info.key, new_mod)
 
-            self.delete_file(current_mod.file.file_name)
-            self.move_file_from_cache_to_content(req.mod_info.file.file_name)
+            enabled = self.delete_file(current_mod.file.file_name)
+            if enabled:
+                print(f'Installing new file {colorify(req.mod_info.file.file_name, RED)}...', end=' ')
+            else:
+                print(f'Installing new file {colorify(req.mod_info.file.file_name + ".disabled", RED)} because current file was also {colorify(".disabled", RED)}...', end=' ')
+            self.move_file_from_cache_to_content(req.mod_info.file.file_name, enabled)
+            
+            print('')
 
         self._install_hist.add(req.mod_info.file.file_name)
 
@@ -321,10 +326,23 @@ class InstallationManager:
             f.write(content)
 
     def delete_file(self, file_name: str):
-        os.remove(file_name)
+        if os.path.exists(file_name):
+            os.remove(file_name)
+            return True
+            
+        elif os.path.exists(file_name + '.disabled'):
+            os.remove(file_name + '.disabled')
+            return False
+        
+        # If file is missing, assume it's meant to be installed and enabled
+        return True
 
-    def move_file_from_cache_to_content(self, file_name: str):
-        os.rename('.carrot_cache/' + file_name, file_name)
+    def move_file_from_cache_to_content(self, file_name: str, enabled: bool = True):
+        target_file_name = file_name
+        if not enabled:
+            target_file_name += '.disabled'
+        
+        os.rename('.carrot_cache/' + file_name, target_file_name)
 
 
 def find_mod_by_key(mods: list, mod_key: str):

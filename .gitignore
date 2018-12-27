@@ -2,6 +2,7 @@ mods.json
 
 .carrot_cache/
 *.jar
+*.jar.disabled
 
 venv/
 build/

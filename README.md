@@ -131,3 +131,13 @@ which can cause mods to go both up as well as down in versions.
 Similarly to `install`, you must explicitly allow `--downgrade` if
 you want older versions of mods to be installed. However, unlike
 during installation, the equivalent of `--upgrade` is "always on".
+
+#### Enabled/disabled mods
+
+Carrot does not store the enabled/disabled status of mods in `mods.json` and
+only looks at the file's name to determine the status. This way, it should be
+compatible with other mod managers such as MultiMC which use the standard
+convention of disabling mods by appending `.disabled` to their file names.
+
+When installing/updating mods, Carrot will preserve the status, i.e. a disabled
+mod will remain disabled after an update and you have to enable it manually.
