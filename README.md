@@ -132,6 +132,19 @@ Similarly to `install`, you must explicitly allow `--downgrade` if
 you want older versions of mods to be installed. However, unlike
 during installation, the equivalent of `--upgrade` is "always on".
 
+#### `status` - display status of mod repository
+
+To see a summary of mod installation use:
+
+    carrot status
+
+This will display the following information:
+ - Number of mods installed
+ - How many of those are dependencies
+ - How many mods are disabled (following the `.disabled` convention)
+ - List mods whose file is missing (disabled or not)
+ - List mods whose file is corrupted (MD5 hash does not match the published one)
+
 #### Enabled/disabled mods
 
 Carrot does not store the enabled/disabled status of mods in `mods.json` and

@@ -1,5 +1,6 @@
 import os
 import json
+import hashlib
 
 from collections import namedtuple
 
@@ -44,6 +45,57 @@ class CarrotService:
 
         with open(MODS_FILE_NAME, 'w+') as cf:
             cf.write(json.dumps(d, indent=True))
+    
+    def status(self, args):
+        carrot = self.read_carrot()
+        
+        dep_count = 0
+        disabled_count = 0
+        missing_file_err = []
+        bad_md5_err = []
+        
+        for mod in carrot.mods:
+            if mod.dependency:
+                dep_count += 1
+            
+            actual_file_name = None
+            if os.path.exists(mod.file.file_name):
+                actual_file_name = mod.file.file_name
+            elif os.path.exists(mod.file.file_name + '.disabled'):
+                actual_file_name = mod.file.file_name + '.disabled'
+            
+            if not actual_file_name:
+                missing_file_err.append(mod)
+            else:
+                file_contents = open(actual_file_name, 'rb').read()
+                
+                md5 = hashlib.md5()
+                md5.update(file_contents)
+                
+                if md5.hexdigest() != mod.file.file_md5:
+                    bad_md5_err.append((mod, actual_file_name, md5.hexdigest()))
+        
+        print(f'Mods installed: {len(carrot.mods)}')
+        
+        if dep_count:
+            print(f'of which dependencies: {dep_count}')
+        
+        if disabled_count > 0:
+            print(f'Disabled mod(s): {disabled_count}')
+        
+        if len(missing_file_err) + len(bad_md5_err) == 0:
+            print('All mod files seem to be in order.')
+        else:
+            if missing_file_err:
+                print(f'{len(missing_file_err)} mod(s) have missing files:')
+                for mod in missing_file_err:
+                    print(f'\t{colorify(mod.name, WHITE+BRIGHT)}: missing file {colorify(mod.file.file_name, RED+BRIGHT)}')
+        
+            if bad_md5_err:
+                print(f'{len(bad_md5_err)} mod(s) have possibly corrupted files:')
+                for mod, actual_file_name, actual_md5 in bad_md5_err:
+                    print(f'\t{colorify(mod.name, WHITE+BRIGHT)}: file {colorify(actual_file_name, RED+BRIGHT)} has hash {colorify(actual_md5, MAGENTA+BRIGHT)} instead of {colorify(mod.file.file_md5, MAGENTA+BRIGHT)}')
+                
     
     def install(self, args):
         carrot = self.read_carrot()

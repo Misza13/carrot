@@ -49,8 +49,7 @@ class StatusCommand(Command):
     def handle_args(self, args):
         if self.carrot_service.initialized():
             print('Mod repo status: OK')
-
-            # TODO: List more useful info, e.g. # of mods, validate files exists, their MD5s etc.
+            self.carrot_service.status(args)
         else:
             print('Mod repo status: INVALID')
             print('This directory does not appear to be a valid mod repo.')
