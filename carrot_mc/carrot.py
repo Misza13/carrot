@@ -107,25 +107,25 @@ class CarrotService:
             print('Mod repo not initialized. Use "carrot init".')
             return
 
-        if args.channel:
-            channel = args.channel
-        else:
-            channel = carrot.channel
-
         im = InstallationManager()
 
         if args.mod_key:
-            exact_match = find_mod_by_key(carrot.mods, args.mod_key)
+            local_mod = find_mod_by_key(carrot.mods, args.mod_key)
 
-            if not exact_match:
+            if not local_mod:
                 print(f'No mod matching exactly the key "{args.mod_key}" is currently installed.')
                 return
+
+            if args.channel:
+                channel = args.channel
+            else:
+                channel = local_mod.file.release_type
 
             im.queue_fetch(FetchRequest(
                 mod_key=args.mod_key,
                 mc_version=carrot.mc_version,
                 channel=channel,
-                dependency=exact_match.dependency
+                dependency=local_mod.dependency
             ))
 
         else:
@@ -134,6 +134,11 @@ class CarrotService:
                 return
 
             for mod in carrot.mods:
+                if args.channel:
+                    channel = args.channel
+                else:
+                    channel = mod.file.release_type
+
                 if not mod.dependency:
                     im.queue_fetch(FetchRequest(
                         mod_key=mod.key,
@@ -200,8 +205,6 @@ class InstallationManager:
         mod_info.file = self.backend.get_newest_file_info(req.mod_key, req.mc_version, req.channel)
 
         current_mod = find_mod_by_key(carrot.mods, mod_info.key)
-
-        # TODO: Handling of "sticky" channel
 
         if not mod_info.file:
             print('Mod has no files in the chosen channel. Skipping.', end=' ')
