@@ -203,7 +203,12 @@ class InstallationManager:
 
         # TODO: Handling of "sticky" channel
 
-        if not current_mod:
+        if not mod_info.file:
+            print('Mod has no files in the chosen channel. Skipping.', end=' ')
+            
+            proceed = False
+
+        elif not current_mod:
             print('New mod.', end=' ')
 
             proceed = True
