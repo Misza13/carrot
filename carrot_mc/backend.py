@@ -3,7 +3,7 @@ import requests
 from carrot_mc import meta
 from carrot_mc.model import ModModel, ModFileModel
 
-API_ENDPOINT = 'https://ddph1n5l22.execute-api.eu-central-1.amazonaws.com/dev/'
+API_ENDPOINT = 'https://api.carrot-mc.xyz/prod/'
 
 
 class BackendService:
