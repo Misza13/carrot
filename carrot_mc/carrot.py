@@ -62,6 +62,7 @@ class CarrotService:
             if os.path.exists(mod.file.file_name):
                 actual_file_name = mod.file.file_name
             elif os.path.exists(mod.file.file_name + '.disabled'):
+                disabled_count += 1
                 actual_file_name = mod.file.file_name + '.disabled'
             
             if not actual_file_name:
