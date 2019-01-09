@@ -2,9 +2,9 @@ Carrot is a command-line interface for managing Minecraft mods in an MC instance
 
 It uses an API that indexes all mods and files on CurseForge.
 
-## Installation
+# Installation
 
-#### From PyPI
+## From PyPI
 
 Carrot is published on [PyPI](https://pypi.org/project/carrot-mc/),
 therefore the best way to install it is via `pip`:
@@ -15,7 +15,7 @@ This assumes you're installing it in a virtualenv environment.
 If you're installing it globally on Linux, you'll probably need to prepend
 the above command with `sudo`.
 
-#### From source
+## From source
 
 You can also download and build your own copy straight from source:
 
@@ -23,7 +23,7 @@ You can also download and build your own copy straight from source:
     cd carrot
     python setup.py install
 
-## Usage
+# Usage
 
 **Important notes:**
  - All commands operate in **the current directory** and assume that you're
@@ -45,7 +45,7 @@ To get help on a specific command, run e.g.
 
 Additional pointers on some of the commands follow.
 
-#### `init` - initialize the mod repository
+## `init` - initialize the mod repository
 
 Before any usage, you must initialize a mod repository and select the
 Minecraft version of this instance, e.g.:
@@ -64,7 +64,7 @@ The channel determines the stability of mod releases that you wish to receive.
 `Beta` is a good default and you may manually override it in other commands
 using the same option.
 
-#### `install` - install a mod
+## `install` - install a mod
 
 If you know the exact key of the mod, install it in the current directory using
 
@@ -108,7 +108,7 @@ but you can override this behaviour with `--upgrade` and `--downgrade` flags
 (see `carrot install -h` for details). Carrot will verbosely inform you if
 this happens, so do pay attention to its output.
 
-#### `update` - update mod(-s) to newer/older versions
+## `update` - update mod(-s) to newer/older versions
 
 In its simplest form:
 
@@ -134,7 +134,7 @@ Similarly to `install`, you must explicitly allow `--downgrade` if
 you want older versions of mods to be installed. However, unlike
 during installation, the equivalent of `--upgrade` is "always on".
 
-#### `status` - display status of mod repository
+## `status` - display status of mod repository
 
 To see a summary of mod installation use:
 
@@ -147,7 +147,7 @@ This will display the following information:
  - List mods whose file is missing (disabled or not)
  - List mods whose file is corrupted (MD5 hash does not match the published one)
 
-#### Enabled/disabled mods
+## Enabled/disabled mods
 
 Carrot does not store the enabled/disabled status of mods in `mods.json` and
 only looks at the file's name to determine the status. This way, it should be
@@ -156,3 +156,9 @@ convention of disabling mods by appending `.disabled` to their file names.
 
 When installing/updating mods, Carrot will preserve the status, i.e. a disabled
 mod will remain disabled after an update and you have to enable it manually.
+
+# Future / planned features
+
+ - Uninstall mods (with pruning of unused dependencies)
+ - Disable/enable mods (via the `.disabled` convention)
+ - Terminal-based GUI mode for more convenient browsing and installing of mods
