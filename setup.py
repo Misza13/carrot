@@ -23,6 +23,9 @@ setup(
     },
     install_requires=[
         'requests',
+        'Flask',
+        'Flask-SocketIO',
+        'eventlet'
     ],
     classifiers=[
         'Programming Language :: Python :: 3',

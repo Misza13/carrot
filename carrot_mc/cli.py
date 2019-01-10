@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, SUPPRESS
 
 from carrot_mc.carrot import CarrotService
+from carrot_mc.web_gui.app import app as web_app
 
 
 def main():
@@ -9,7 +10,8 @@ def main():
         #ListCommand(),
         InstallCommand(),
         InitCommand(),
-        UpdateCommand()
+        UpdateCommand(),
+        WebGuiCommand()
     ]
 
     ap = ArgumentParser(prog='carrot')
@@ -191,6 +193,23 @@ class UpdateCommand(Command):
 
     def handle_args(self, args):
         self.carrot_service.update(args)
+
+
+class WebGuiCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'web-gui',
+            help='Start an interactive web GUI interface for managing mods'
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        import logging
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+
+        web_app.run()
 
 
 if __name__ == '__main__':

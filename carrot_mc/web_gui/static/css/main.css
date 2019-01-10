@@ -1,0 +1,33 @@
+html {
+    background-color: #222;
+    color: ivory;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+.mod-info-row {
+    border: solid 1px #28F;
+    min-height: 64px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.mod-info-row + .mod-info-row {
+   border-top:0;
+}
+
+span.mod-name {
+    color: yellow;
+}
+
+span.mod-key {
+    color: white;
+    font-weight: bolder;
+    font-family: 'Source Code Pro', monospace;
+}
+
+span.mod-owner {
+    color: limegreen;
+}
