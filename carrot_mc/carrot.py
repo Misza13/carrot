@@ -21,8 +21,9 @@ InstallRequest = namedtuple('InstallRequest', ['mod_info', 'dependency'])
 
 
 class CarrotService:
-    def __init__(self):
-        self.backend = BackendService()
+    def __init__(self, backend_service, installation_manager):
+        self.backend = backend_service
+        self.installer = installation_manager
     
     def read_carrot(self):
         if os.path.exists(MODS_FILE_NAME):
@@ -111,11 +112,9 @@ class CarrotService:
         else:
             channel = carrot.channel
 
-        im = InstallationManager()
-
         if len(args.mod_key) > 1:
             for mod_key in args.mod_key:
-                im.queue_fetch(FetchRequest(
+                self.installer.queue_fetch(FetchRequest(
                     mod_key=mod_key,
                     mc_version=carrot.mc_version,
                     channel=channel,
@@ -135,7 +134,7 @@ class CarrotService:
             if exact_match:
                 print('Found exact match')
 
-                im.queue_fetch(FetchRequest(
+                self.installer.queue_fetch(FetchRequest(
                     mod_key=mod_key,
                     mc_version=carrot.mc_version,
                     channel=channel,
@@ -151,7 +150,7 @@ class CarrotService:
                         print('\t' + ', '.join([f'{clr.mod_category(c)}' for c in mod.categories]))
                 return
 
-        im.run(carrot, args)
+        self.installer.run(carrot, args)
 
         self.save_carrot(carrot)
 
@@ -161,8 +160,6 @@ class CarrotService:
         if not carrot:
             print('Mod repo not initialized. Use "carrot init".')
             return
-
-        im = InstallationManager()
 
         if args.mod_key:
             local_mod = find_mod_by_key(carrot.mods, args.mod_key)
@@ -176,7 +173,7 @@ class CarrotService:
             else:
                 channel = local_mod.file.release_type
 
-            im.queue_fetch(FetchRequest(
+            self.installer.queue_fetch(FetchRequest(
                 mod_key=args.mod_key,
                 mc_version=carrot.mc_version,
                 channel=channel,
@@ -195,7 +192,7 @@ class CarrotService:
                     channel = mod.file.release_type
 
                 if not mod.dependency:
-                    im.queue_fetch(FetchRequest(
+                    self.installer.queue_fetch(FetchRequest(
                         mod_key=mod.key,
                         mc_version=carrot.mc_version,
                         channel=channel,
@@ -203,13 +200,13 @@ class CarrotService:
                     ))
                     # TODO: How to purge dependencies that are no longer valid?
 
-        im.run(carrot, args)
+        self.installer.run(carrot, args)
         self.save_carrot(carrot)
 
 
 class InstallationManager:
-    def __init__(self):
-        self.backend = BackendService()
+    def __init__(self, backend_service):
+        self.backend = backend_service
 
         self.fetch_q = Queue()
         self.download_q = Queue()

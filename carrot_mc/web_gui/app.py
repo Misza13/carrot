@@ -1,12 +1,15 @@
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
-from carrot_mc.carrot import CarrotService
+from carrot_mc.backend import BackendService
+from carrot_mc.carrot import CarrotService, InstallationManager
 
 app = Flask(__name__, static_url_path='')
 socketio = SocketIO(app)
 
-carrot_service = CarrotService()
+backend_service = BackendService()
+installation_manager = InstallationManager(backend_service)
+carrot_service = CarrotService(backend_service, installation_manager)
 
 
 @app.route('/')

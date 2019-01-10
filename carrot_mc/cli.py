@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, SUPPRESS
 
-from carrot_mc.carrot import CarrotService
+from carrot_mc.backend import BackendService
+from carrot_mc.carrot import CarrotService, InstallationManager
 
 
 def main():
@@ -29,7 +30,9 @@ def main():
 
 
 class Command(object):
-    carrot_service = CarrotService()
+    backend_service = BackendService()
+    installation_manager = InstallationManager(backend_service)
+    carrot_service = CarrotService(backend_service, installation_manager)
 
     def register_help(self, subparsers):
         raise NotImplementedError()
