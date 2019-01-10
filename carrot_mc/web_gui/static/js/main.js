@@ -1,7 +1,19 @@
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+const SocketContext = React.createContext();
+
 class InternetMod extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.handleInstallClick = this.handleInstallClick.bind(this);
+  }
+
+  handleInstallClick(e) {
+    const socket = this.context;
+    socket.emit('install', {
+      mod_key: this.props.mod.key
+    });
   }
 
   render() {
@@ -13,7 +25,7 @@ class InternetMod extends React.Component {
       src: this.props.mod.avatar,
       alt: this.props.mod.name
     })), React.createElement("div", {
-      className: "col"
+      className: "col-9 col-lg-10"
     }, React.createElement("div", {
       className: "row"
     }, React.createElement("div", {
@@ -30,10 +42,21 @@ class InternetMod extends React.Component {
       className: "col"
     }, React.createElement("span", {
       className: "mod-blurb"
-    }, this.props.mod.blurb)))));
+    }, this.props.mod.blurb)))), React.createElement("div", {
+      className: "col-1"
+    }, React.createElement("button", {
+      type: "button",
+      className: "btn btn-outline-primary btn-install",
+      title: "Install",
+      onClick: this.handleInstallClick
+    }, React.createElement("i", {
+      className: "fas fa-download"
+    }))));
   }
 
 }
+
+_defineProperty(InternetMod, "contextType", SocketContext);
 
 class ModList extends React.Component {
   constructor(props) {
@@ -76,4 +99,7 @@ class CarrotApp extends React.Component {
 
 }
 
-ReactDOM.render(React.createElement(CarrotApp, null), document.getElementById('root'));
+const socket = io('http://localhost:5000/');
+ReactDOM.render(React.createElement(SocketContext.Provider, {
+  value: socket
+}, React.createElement(CarrotApp, null)), document.getElementById('root'));

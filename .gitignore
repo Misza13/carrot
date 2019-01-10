@@ -9,5 +9,6 @@ build/
 carrot_mc.egg-info/
 dist/
 **/__pycache__/
+**/node_modules/
 
 .idea/

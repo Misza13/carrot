@@ -1,7 +1,6 @@
 from argparse import ArgumentParser, SUPPRESS
 
 from carrot_mc.carrot import CarrotService
-from carrot_mc.web_gui.app import app as web_app
 
 
 def main():
@@ -209,7 +208,8 @@ class WebGuiCommand(Command):
         log = logging.getLogger('werkzeug')
         log.setLevel(logging.ERROR)
 
-        web_app.run()
+        from carrot_mc.web_gui.app import run_socket_app
+        run_socket_app()
 
 
 if __name__ == '__main__':
