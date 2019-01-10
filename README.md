@@ -159,6 +159,7 @@ mod will remain disabled after an update and you have to enable it manually.
 
 # Future / planned features
 
+ - List currently installed mods
  - Uninstall mods (with pruning of unused dependencies)
  - Disable/enable mods (via the `.disabled` convention)
- - Terminal-based GUI mode for more convenient browsing and installing of mods
+ - Terminal-/web-based GUI mode for more convenient browsing and installing of mods
