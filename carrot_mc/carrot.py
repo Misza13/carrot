@@ -8,7 +8,7 @@ from queue import Queue
 
 from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel
 from carrot_mc.backend import BackendService
-from carrot_mc.colors import *
+from carrot_mc.colors import Colorizer as clr
 from carrot_mc.meta import VERSION
 
 
@@ -92,12 +92,12 @@ class CarrotService:
             if missing_file_err:
                 print(f'{len(missing_file_err)} mod(s) have missing files:')
                 for mod in missing_file_err:
-                    print(f'\t{colorify(mod.name, WHITE+BRIGHT)}: missing file {colorify(mod.file.file_name, RED+BRIGHT)}')
+                    print(f'\t{clr.mod_name(mod.name)}: missing file {clr.file_name(mod.file.file_name)}')
         
             if bad_md5_err:
                 print(f'{len(bad_md5_err)} mod(s) have possibly corrupted files:')
                 for mod, actual_file_name, actual_md5 in bad_md5_err:
-                    print(f'\t{colorify(mod.name, WHITE+BRIGHT)}: file {colorify(actual_file_name, RED+BRIGHT)} has hash {colorify(actual_md5, MAGENTA+BRIGHT)} instead of {colorify(mod.file.file_md5, MAGENTA+BRIGHT)}')
+                    print(f'\t{clr.mod_name(mod.name)}: file {clr.file_name(actual_file_name)} has hash {clr.file_hash(actual_md5)} instead of {clr.file_hash(mod.file.file_md5)}')
                 
     
     def install(self, args):
@@ -143,12 +143,12 @@ class CarrotService:
                 ))
 
             else:
-                print(f'No mod found in top downloaded mods matching exactly the key "{mod_key}". These are the top downloaded matches:')
+                print(f'No mod found in top downloaded mods matching exactly the key "{clr.mod_key(mod_key)}". These are the top downloaded matches:')
                 for mod in mods:
-                    print(f'{colorify(mod.key, WHITE+BRIGHT)} {colorify(mod.name, YELLOW+BRIGHT)} by {colorify(mod.owner, GREEN+BRIGHT)}')
-                    print(f'\t{colorify(mod.blurb, WHITE)}')
+                    print(f'[{clr.mod_key(mod.key)}] {clr.mod_name(mod.name)} by {clr.mod_owner(mod.owner)}')
+                    print(f'\t{clr.mod_blurb(mod.blurb)}')
                     if mod.categories:
-                        print('\t' + ', '.join([f'{colorify(c, BLUE+BRIGHT)}' for c in mod.categories]))
+                        print('\t' + ', '.join([f'{clr.mod_category(c)}' for c in mod.categories]))
                 return
 
         im.run(carrot, args)
@@ -168,7 +168,7 @@ class CarrotService:
             local_mod = find_mod_by_key(carrot.mods, args.mod_key)
 
             if not local_mod:
-                print(f'No mod matching exactly the key "{args.mod_key}" is currently installed.')
+                print(f'No mod matching exactly the key "{clr.mod_key(args.mod_key)}" is currently installed.')
                 return
 
             if args.channel:
@@ -185,7 +185,7 @@ class CarrotService:
 
         else:
             if not carrot.mods:
-                print(f'No mods are installed. Use "{colorify("carrot install", YELLOW+BRIGHT)}" to install some.')
+                print(f'No mods are installed. Use "{clr.cli("carrot install")}" to install some.')
                 return
 
             for mod in carrot.mods:
@@ -247,15 +247,15 @@ class InstallationManager:
         print('Installation phase complete.')
 
     def do_fetch(self, req: FetchRequest, carrot: CarrotModel, args):
-        print(f'Checking mod {colorify(str(req.mod_key), WHITE + BRIGHT)}...', end=' ')
+        print(f'Checking mod {clr.mod_key(str(req.mod_key))}...', end=' ')
 
         mod_info = self.backend.get_mod_info(req.mod_key)
 
         if not mod_info.key:
-            print(colorify('Not found!', RED+BRIGHT))
+            print(clr.error('Not found!'))
             return
 
-        print(colorify(mod_info.name + '...', WHITE + BRIGHT), end=' ')
+        print(f'{clr.mod_name(mod_info.name)}...', end=' ')
 
         mod_info.file = self.backend.get_newest_file_info(req.mod_key, req.mc_version, req.channel)
 
@@ -279,11 +279,11 @@ class InstallationManager:
                 proceed = True
 
             else:
-                print(f'A newer file was found but upgrades are disabled by default. Use the {colorify("--upgrade", RED + BRIGHT)} option if this should be allowed.',
+                print(f'A newer file was found but upgrades are disabled by default. Use the {clr.cli("--upgrade")} option if this should be allowed.',
                       end=' ')
 
                 if req.dependency:
-                    print(f'\n{colorify("NOTE", RED + BRIGHT)}: Because this is a dependency, it will {colorify("not", BRIGHT)} be re-checked if you re-run last install command. Use "{colorify("carrot update " + mod_info.key, YELLOW + BRIGHT)}" to do it explicitly.',
+                    print(f'\n{clr.emph("NOTE")}: Because this is a dependency, it will {clr.emph("not")} be re-checked if you re-run last install command. Use "{clr.cli("carrot update " + mod_info.key)}" to do it explicitly.',
                           end=' ')
 
                 proceed = False
@@ -301,7 +301,7 @@ class InstallationManager:
 
                 proceed = True
             else:
-                print(f'An older file was found but downgrades are disabled by default. Use the {colorify("--downgrade", RED + BRIGHT)} option if this was intended.',
+                print(f'An older file was found but downgrades are disabled by default. Use the {clr.cli("--downgrade")} option if this was intended.',
                       end=' ')
 
                 proceed = False
@@ -334,7 +334,7 @@ class InstallationManager:
         if req.mod_info.file.file_name in self._download_hist:
             return
 
-        print(f'Downloading file {colorify(req.mod_info.file.file_name, RED)} from {colorify(req.mod_info.file.download_url, BLUE)}...')
+        print(f'Downloading file {clr.file_name(req.mod_info.file.file_name)} from {clr.url(req.mod_info.file.download_url)}...')
         file_contents = self.backend.download_file(req.mod_info.file.download_url)
         self.put_file_in_cache(file_contents, req.mod_info.file.file_name)
         self._download_hist.add(req.mod_info.file.file_name)
@@ -348,13 +348,13 @@ class InstallationManager:
         new_mod.dependency = req.dependency
 
         if not current_mod:
-            print(f'Installing mod {colorify(req.mod_info.name, WHITE + BRIGHT)} with file {colorify(req.mod_info.file.file_name, RED)}...')
+            print(f'Installing mod {clr.mod_name(req.mod_info.name)} with file {clr.file_name(req.mod_info.file.file_name)}...')
             carrot.mods.append(new_mod)
 
             self.move_file_from_cache_to_content(new_mod.file.file_name)
 
         else:
-            print(f'Updating mod {colorify(req.mod_info.name, WHITE + BRIGHT)}...', end=' ')
+            print(f'Updating mod {clr.mod_name(req.mod_info.name)}...', end=' ')
 
             # Prevent a user-installed mod from becoming a dependency
             if not current_mod.dependency and new_mod.dependency:
@@ -364,9 +364,9 @@ class InstallationManager:
 
             enabled = self.delete_file(current_mod.file.file_name)
             if enabled:
-                print(f'Installing new file {colorify(req.mod_info.file.file_name, RED)}...', end=' ')
+                print(f'Installing new file {clr.file_name(req.mod_info.file.file_name)}...', end=' ')
             else:
-                print(f'Installing new file {colorify(req.mod_info.file.file_name + ".disabled", RED)} because current file was also {colorify(".disabled", RED)}...', end=' ')
+                print(f'Installing new file {clr.file_name(req.mod_info.file.file_name + ".disabled")} because current file was also {clr.file_name(".disabled")}...', end=' ')
             self.move_file_from_cache_to_content(req.mod_info.file.file_name, enabled)
             
             print('')
