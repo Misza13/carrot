@@ -9,6 +9,7 @@ from queue import Queue
 from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel
 from carrot_mc.backend import BackendService
 from carrot_mc.colors import *
+from carrot_mc.meta import VERSION
 
 
 MODS_FILE_NAME = 'mods.json'
@@ -31,6 +32,7 @@ class CarrotService:
                 return carrot
 
     def save_carrot(self, carrot: CarrotModel):
+        carrot.carrot_version = VERSION
         with open(MODS_FILE_NAME, 'w+') as cf:
             data = carrot.to_dict()
             cf.write(json.dumps(data, indent=4))

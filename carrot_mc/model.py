@@ -1,9 +1,11 @@
 from carrot_mc.data import Automappable, Autoproperty
+from carrot_mc.meta import VERSION
 
 
 class CarrotModel(Automappable):
     def __init__(self):
         self.version = Autoproperty(int, 1)
+        self.carrot_version = Autoproperty(str, VERSION)
         self.name = Autoproperty(str, '')
         self.mc_version = Autoproperty(str)
         self.channel = Autoproperty(str, 'Beta')
