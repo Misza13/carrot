@@ -38,5 +38,15 @@ def handle_carrot_status():
     socketio.emit('carrot result status', carrot.to_dict())
 
 
+@socketio.on('carrot enable')
+def handle_carrot_enable(args):
+    pass
+
+
+@socketio.on('carrot disable')
+def handle_carrot_enable(args):
+    pass
+
+
 def run_socket_app():
     socketio.run(app)
