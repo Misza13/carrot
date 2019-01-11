@@ -230,6 +230,58 @@ class CarrotService:
         self.installer.run(carrot, args)
         self.save_carrot(carrot)
 
+    def enable(self, args):
+        # TODO: Dependency handling
+        carrot = self.read_carrot()
+        if not carrot:
+            print('Mod repo not initialized. Use "carrot init".')
+            return
+
+        for mod_key in args.mod_key:
+            local_mod = find_mod_by_key(carrot.mods, mod_key)
+
+            if not local_mod:
+                print(f'No mod matching exactly the key "{clr.mod_key(mod_key)}" is currently installed.')
+                continue
+
+            if not os.path.exists(local_mod.file.file_name + '.disabled'):
+                if os.path.exists(local_mod.file.file_name):
+                    print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is already enabled.')
+                    continue
+
+                print(f'Mod file for {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is {clr.error("missing")}.')
+                continue
+
+            os.replace(local_mod.file.file_name + '.disabled', local_mod.file.file_name)
+
+            print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} enabled.')
+
+    def disable(self, args):
+        # TODO: Lots of code sharing with enable()
+        carrot = self.read_carrot()
+        if not carrot:
+            print('Mod repo not initialized. Use "carrot init".')
+            return
+
+        for mod_key in args.mod_key:
+            local_mod = find_mod_by_key(carrot.mods, mod_key)
+
+            if not local_mod:
+                print(f'No mod matching exactly the key "{clr.mod_key(mod_key)}" is currently installed.')
+                continue
+
+            if not os.path.exists(local_mod.file.file_name):
+                if os.path.exists(local_mod.file.file_name + '.disabled'):
+                    print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is already disabled.')
+                    continue
+
+                print(f'Mod file for {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is {clr.error("missing")}.')
+                continue
+
+            os.replace(local_mod.file.file_name, local_mod.file.file_name + '.disabled')
+
+            print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} disabled.')
+
 
 class InstallationManager:
     def __init__(self, backend_service):

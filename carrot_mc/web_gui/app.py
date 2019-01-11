@@ -39,13 +39,27 @@ def handle_carrot_status():
 
 
 @socketio.on('carrot enable')
-def handle_carrot_enable(args):
-    pass
+def handle_carrot_enable(event):
+    class EnableRequest:
+        def __init__(self, event):
+            self.mod_key = [event['mod_key']]
+
+    carrot_service.enable(EnableRequest(event))
+
+    carrot = carrot_service.get_status()
+    socketio.emit('carrot result status', carrot.to_dict())
 
 
 @socketio.on('carrot disable')
-def handle_carrot_enable(args):
-    pass
+def handle_carrot_enable(event):
+    class DisableRequest:
+        def __init__(self, event):
+            self.mod_key = [event['mod_key']]
+
+    carrot_service.disable(DisableRequest(event))
+
+    carrot = carrot_service.get_status()
+    socketio.emit('carrot result status', carrot.to_dict())
 
 
 def run_socket_app():

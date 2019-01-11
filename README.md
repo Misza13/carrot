@@ -147,7 +147,26 @@ This will display the following information:
  - List mods whose file is missing (disabled or not)
  - List mods whose file is corrupted (MD5 hash does not match the published one)
 
-## Enabled/disabled mods
+## `enable` and `disable` - enable/disable mods
+
+To enable a mod, use
+
+    carrot enable MOD_KEY
+
+Many mod keys can be specified at the same time, e.g.:
+
+    carrot enable rftools rftools-dimensions
+
+Similarly,
+
+    carrot disable MOD_KEY
+
+will disable a mod (or many mods, if more than one is specified).
+
+Be aware that as of now, dependencies are not disabled/enabled along with the
+main mod and have to be toggled manually. 
+
+### Enabled/disabled mods
 
 Carrot does not store the enabled/disabled status of mods in `mods.json` and
 only looks at the file's name to determine the status. This way, it should be

@@ -11,6 +11,8 @@ def main():
         InstallCommand(),
         InitCommand(),
         UpdateCommand(),
+        EnableCommand(),
+        DisableCommand(),
         WebGuiCommand()
     ]
 
@@ -195,6 +197,46 @@ class UpdateCommand(Command):
 
     def handle_args(self, args):
         self.carrot_service.update(args)
+
+
+class EnableCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'enable',
+            help='Enable a mod (by removing its ".disabled" file name suffix).'
+        )
+
+        parser.add_argument(
+            'mod_key',
+            help='"Key" id of a mod to enable.',
+            nargs='+',
+            default=None
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        self.carrot_service.enable(args)
+
+
+class DisableCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'disable',
+            help='Disable a mod (by appending ".disabled" to its file name).'
+        )
+
+        parser.add_argument(
+            'mod_key',
+            help='"Key" id of a mod to disable.',
+            nargs='+',
+            default=None
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        self.carrot_service.disable(args)
 
 
 class WebGuiCommand(Command):
