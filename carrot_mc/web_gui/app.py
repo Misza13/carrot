@@ -5,6 +5,7 @@ from flask_socketio import SocketIO
 
 from carrot_mc.backend import BackendService
 from carrot_mc.carrot import CarrotService, InstallationManager
+from carrot_mc.data import Automappable
 
 app = Flask(__name__, static_url_path='')
 socketio = SocketIO(app)
@@ -12,7 +13,20 @@ socketio = SocketIO(app)
 
 class SocketEventRouter:
     def handle(self, event: str, payload=None):
-        socketio.emit(event, payload)
+        if not payload:
+            socketio.emit(event, {})
+
+        if isinstance(payload, Namespace):
+            payload = vars(payload)
+
+        converted = dict()
+        for k, v in payload.items():
+            if isinstance(v, Automappable):
+                converted[k] = v.to_dict()
+            else:
+                converted[k] = v
+
+        socketio.emit(event, converted)
 
 
 socket_router = SocketEventRouter()
@@ -40,23 +54,17 @@ def handle_install(event):
 @socketio.on('carrot status')
 def handle_carrot_status():
     carrot = carrot_service.get_status()
-    socketio.emit('carrot result status', carrot.to_dict())
+    socketio.emit('carrot status', carrot.to_dict())
 
 
 @socketio.on('carrot enable')
 def handle_carrot_enable(event):
     carrot_service.enable(Namespace(**event))
 
-    carrot = carrot_service.get_status()
-    socketio.emit('carrot result status', carrot.to_dict())
-
 
 @socketio.on('carrot disable')
 def handle_carrot_enable(event):
     carrot_service.disable(Namespace(**event))
-
-    carrot = carrot_service.get_status()
-    socketio.emit('carrot result status', carrot.to_dict())
 
 
 def run_socket_app():

@@ -66,8 +66,16 @@ export default class CarrotApp extends React.Component {
     componentDidMount() {
         const socket = this.context;
 
-        socket.on('carrot result status', carrot_status => {
+        socket.on('carrot status', carrot_status => {
             this.setState({ installed_mods: carrot_status.mods });
+        });
+
+        socket.on('mod_enabled', () => {
+            this.requestGetCarrot();
+        });
+
+        socket.on('mod_disabled', () => {
+            this.requestGetCarrot();
         });
 
         this.requestGetCarrot();
