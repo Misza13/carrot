@@ -1,3 +1,5 @@
+import './main.css';
+
 const SocketContext = React.createContext();
 
 class InternetMod extends React.Component {
