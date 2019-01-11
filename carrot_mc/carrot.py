@@ -6,7 +6,6 @@ from collections import namedtuple
 from queue import Queue
 
 from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel, InstalledModStatusModel
-from carrot_mc.colors import Colorizer as clr
 from carrot_mc.meta import VERSION
 
 
@@ -258,77 +257,64 @@ class InstallationManager:
             req = self.fetch_q.get()
             self.do_fetch(req, carrot, args)
 
-        self.printer.handle('info', 'Mod check phase complete. Proceeding to download...')
+        self.printer.handle('info all_mod_check_complete')
 
         while not self.download_q.empty():
             req = self.download_q.get()
             self.do_download(req, carrot, args)
 
-        self.printer.handle('info', 'Download phase complete. Proceeding to installation...')
+        self.printer.handle('info all_mod_fetch_complete')
 
         while not self.install_q.empty():
             req = self.install_q.get()
             self.do_install(req, carrot, args)
 
-        self.printer.handle('info', 'Installation phase complete.')
+        self.printer.handle('info all_mod_install_complete')
 
     def do_fetch(self, req: FetchRequest, carrot: CarrotModel, args):
-        print(f'Checking mod {clr.mod_key(str(req.mod_key))}...', end=' ')
-
         mod_info = self.backend.get_mod_info(req.mod_key)
 
         if not mod_info.key:
-            print(clr.error('Not found!'))
+            self.printer.handle('error mod_key_not_found', Namespace(mod_key=req.mod_key))
             return
 
-        print(f'{clr.mod_name(mod_info.name)}...', end=' ')
+        self.printer.handle('info mod_resolved', Namespace(mod_key=str(req.mod_key), mod=mod_info))
 
         mod_info.file = self.backend.get_newest_file_info(req.mod_key, req.mc_version, req.channel)
 
         current_mod = find_mod_by_key(carrot.mods, mod_info.key)
 
         if not mod_info.file:
-            print('Mod has no files in the chosen channel. Skipping.', end=' ')
-            
+            self.printer.handle('info no_files_in_channel', Namespace(mod=mod_info))
+
             proceed = False
 
         elif not current_mod:
-            print('New mod.', end=' ')
-
             proceed = True
 
         elif current_mod.file.id < mod_info.file.id:
             if args.upgrade:
-                print('Mod already installed, found new version and will upgrade because it\'s allowed.',
-                      end=' ')
+                self.printer.handle('info will_upgrade_mod', Namespace(mod=mod_info))
 
                 proceed = True
 
             else:
-                print(f'A newer file was found but upgrades are disabled by default. Use the {clr.cli("--upgrade")} option if this should be allowed.',
-                      end=' ')
-
-                if req.dependency:
-                    print(f'\n{clr.emph("NOTE")}: Because this is a dependency, it will {clr.emph("not")} be re-checked if you re-run last install command. Use "{clr.cli("carrot update " + mod_info.key)}" to do it explicitly.',
-                          end=' ')
+                self.printer.handle('warn upgrade_not_allowed', Namespace(mod=mod_info, dependency=req.dependency))
 
                 proceed = False
 
         elif current_mod.file.id == mod_info.file.id:
-            print('Already at newest version.',
-                  end=' ')
+            self.printer.handle('warn already_newest_version', Namespace(mod=mod_info))
 
             proceed = False
 
         else:
             if args.downgrade:
-                print('Mod already installed, found older version and will downgrade because it\'s allowed.',
-                      end=' ')
+                self.printer.handle('info will_downgrade_mod', Namespace(mod=mod_info))
 
                 proceed = True
             else:
-                print(f'An older file was found but downgrades are disabled by default. Use the {clr.cli("--downgrade")} option if this was intended.',
-                      end=' ')
+                self.printer.handle('warn downgrade_not_allowed', Namespace(mod=mod_info))
 
                 proceed = False
 
@@ -344,7 +330,7 @@ class InstallationManager:
             ))
 
             if mod_info.file.mod_dependencies:
-                print('Detected dependencies.', end=' ')
+                self.printer.handle('info dependencies_detected', Namespace(deps=mod_info.file.mod_dependencies))
 
                 for dep in mod_info.file.mod_dependencies:
                     self.queue_fetch(FetchRequest(
@@ -354,13 +340,12 @@ class InstallationManager:
                         dependency=True
                     ))
 
-        print('')
-
     def do_download(self, req: DownloadRequest, carrot: CarrotModel, args):
         if req.mod_info.file.file_name in self._download_hist:
             return
 
-        print(f'Downloading file {clr.file_name(req.mod_info.file.file_name)} from {clr.url(req.mod_info.file.download_url)}...')
+        self.printer.handle('info downloading_file', Namespace(file=req.mod_info.file))
+
         file_contents = self.backend.download_file(req.mod_info.file.download_url)
         self.put_file_in_cache(file_contents, req.mod_info.file.file_name)
         self._download_hist.add(req.mod_info.file.file_name)
@@ -374,13 +359,14 @@ class InstallationManager:
         new_mod.dependency = req.dependency
 
         if not current_mod:
-            print(f'Installing mod {clr.mod_name(req.mod_info.name)} with file {clr.file_name(req.mod_info.file.file_name)}...')
+            self.printer.handle('info installing_mod', Namespace(mod=req.mod_info, new_mod=True))
+
             carrot.mods.append(new_mod)
 
             self.move_file_from_cache_to_content(new_mod.file.file_name)
 
         else:
-            print(f'Updating mod {clr.mod_name(req.mod_info.name)}...', end=' ')
+            self.printer.handle('info installing_mod', Namespace(mod=req.mod_info, new_mod=False))
 
             # Prevent a user-installed mod from becoming a dependency
             if not current_mod.dependency and new_mod.dependency:
@@ -389,15 +375,14 @@ class InstallationManager:
             replace_mod_by_key(carrot.mods, req.mod_info.key, new_mod)
 
             enabled = self.delete_file(current_mod.file.file_name)
-            if enabled:
-                print(f'Installing new file {clr.file_name(req.mod_info.file.file_name)}...', end=' ')
-            else:
-                print(f'Installing new file {clr.file_name(req.mod_info.file.file_name + ".disabled")} because current file was also {clr.file_name(".disabled")}...', end=' ')
+
+            self.printer.handle('info updating_file', Namespace(file=current_mod.file, enabled=enabled))
+
             self.move_file_from_cache_to_content(req.mod_info.file.file_name, enabled)
-            
-            print('')
 
         self._install_hist.add(req.mod_info.file.file_name)
+
+        self.printer.handle('info mod_install_complete', Namespace(mod=new_mod))
 
     def put_file_in_cache(self, content: bytes, file_name: str):
         if not os.path.exists('.carrot_cache'):
