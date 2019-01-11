@@ -13,8 +13,7 @@ export default class CarrotApp extends React.Component {
         super(props);
 
         this.state = {
-            installed_mods: [],
-            web_list_open: false
+            webListOpen: false
         };
     }
 
@@ -23,77 +22,24 @@ export default class CarrotApp extends React.Component {
             <div id="page-container" className="container">
                 <div className="row">
                     <div className="col">
-                        <div className="btn-group installed-mods-toolbar" role="group">
-                            <button
-                                type="button"
-                                className="btn btn-outline-success"
-                                onClick={this.handleRefreshClick}>
-                                Refresh
-                            </button>
-                            {!this.state.web_list_open && <button
-                                type="button"
-                                className="btn btn-outline-primary"
-                                onClick={this.handleInstallMoreClick}>
-                                Install more
-                            </button>}
-                        </div>
+                        <InstalledModList
+                            webListOpen={this.state.webListOpen}
+                            onInstallMoreClick={this.handleInstallMoreClick} />
                     </div>
-
-                    {this.state.web_list_open && <div className="col">
-                        <div className="btn-group web-mods-toolbar" role="group">
-                            <button
-                                type="button"
-                                className="btn btn-outline-warning"
-                                onClick={this.handleCloseWebClick}>
-                                Close
-                            </button>
-                        </div>
-                    </div>}
-                </div>
-                <div className="row">
-                    <div className="col installed-mods-col">
-                        <InstalledModList mods={this.state.installed_mods} />
-                    </div>
-                    {this.state.web_list_open && <div className="col web-mods-col">
-                        <WebModList />
+                    {this.state.webListOpen && <div className="col">
+                        <WebModList
+                            onCloseClick={this.handleWebCloseClick}/>
                     </div>}
                 </div>
             </div>
         );
     }
 
-    componentDidMount() {
-        const socket = this.context;
-
-        socket.on('carrot status', carrot_status => {
-            this.setState({ installed_mods: carrot_status.mods });
-        });
-
-        socket.on('mod_enabled', () => {
-            this.requestGetCarrot();
-        });
-
-        socket.on('mod_disabled', () => {
-            this.requestGetCarrot();
-        });
-
-        this.requestGetCarrot();
-    }
-
-    handleRefreshClick = () => {
-        this.requestGetCarrot();
-    };
-
     handleInstallMoreClick = () => {
-        this.setState({ web_list_open: true })
+        this.setState({ webListOpen: true });
     };
 
-    handleCloseWebClick = () => {
-        this.setState({ web_list_open: false })
-    };
-
-    requestGetCarrot() {
-        const socket = this.context;
-        socket.emit('carrot status');
+    handleWebCloseClick = () => {
+        this.setState({ webListOpen: false });
     }
 }
