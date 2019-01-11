@@ -45,9 +45,9 @@ export default class InstalledModItem extends React.Component {
         const socket = this.context;
 
         if (this.props.mod.disabled) {
-            socket.emit('carrot enable', { mod_key: this.props.mod.key });
+            socket.emit('carrot enable', { mod_key: [this.props.mod.key] });
         } else {
-            socket.emit('carrot disable', { mod_key: this.props.mod.key });
+            socket.emit('carrot disable', { mod_key: [this.props.mod.key] });
         }
     }
 }

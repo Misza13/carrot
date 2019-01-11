@@ -1,3 +1,5 @@
+from argparse import Namespace
+
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
@@ -24,12 +26,7 @@ def send_static(path):
 
 @socketio.on('install')
 def handle_install(event):
-    class InstallRequest:
-        def __init__(self, event):
-            self.mod_key = [event['mod_key']]
-            self.channel = None
-
-    carrot_service.install(InstallRequest(event))
+    carrot_service.install(Namespace(**event, channel=None))
 
 
 @socketio.on('carrot status')
@@ -40,11 +37,7 @@ def handle_carrot_status():
 
 @socketio.on('carrot enable')
 def handle_carrot_enable(event):
-    class EnableRequest:
-        def __init__(self, event):
-            self.mod_key = [event['mod_key']]
-
-    carrot_service.enable(EnableRequest(event))
+    carrot_service.enable(Namespace(**event))
 
     carrot = carrot_service.get_status()
     socketio.emit('carrot result status', carrot.to_dict())
@@ -52,11 +45,7 @@ def handle_carrot_enable(event):
 
 @socketio.on('carrot disable')
 def handle_carrot_enable(event):
-    class DisableRequest:
-        def __init__(self, event):
-            self.mod_key = [event['mod_key']]
-
-    carrot_service.disable(DisableRequest(event))
+    carrot_service.disable(Namespace(**event))
 
     carrot = carrot_service.get_status()
     socketio.emit('carrot result status', carrot.to_dict())
