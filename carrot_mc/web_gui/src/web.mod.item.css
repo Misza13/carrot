@@ -19,3 +19,7 @@
     background-color: limegreen;
     color: #222;
 }
+
+.help-active {
+    cursor: help;
+}

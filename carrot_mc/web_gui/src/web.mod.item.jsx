@@ -3,6 +3,7 @@ import React from 'react';
 import './web.mod.item.css';
 
 import SocketContext from "./socket.context";
+import ModInfoModal from "./mod.info.modal";
 
 export default class WebModItem extends React.Component {
     static contextType = SocketContext;
@@ -10,12 +11,20 @@ export default class WebModItem extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            modInfoOpen: false
+        };
     }
 
     render() {
         return (
             <div className="row mod-info-row">
+                {this.state.modInfoOpen &&
+                    <ModInfoModal
+                        mod={this.props.mod}
+                        onCloseClicked={this.closeModInfo} />
+                }
+
                 <div className="col-3 col-lg-2">
                     <img src={this.props.mod.avatar} alt={this.props.mod.name} />
                 </div>
@@ -23,7 +32,7 @@ export default class WebModItem extends React.Component {
                 <div className="col-8 col-lg-9">
                     <div className="row">
                         <div className="col-10">
-                            <span className="mod-key">[{this.props.mod.key}]</span>
+                            <span className="mod-key help-active" onClick={this.openModInfo}>[{this.props.mod.key}]</span>
                             <br/>
                             <span className="mod-name">{this.props.mod.name}</span>
                             {' by '}
@@ -31,6 +40,13 @@ export default class WebModItem extends React.Component {
                         </div>
 
                         <div className="col-2">
+                            <button
+                                type="button"
+                                className="btn btn-outline-primary btn-sm"
+                                title="Mod info"
+                                onClick={this.openModInfo}>
+                                <i className="fas fa-info-circle" />
+                            </button>
                             <button
                                 type="button"
                                 className="btn btn-outline-primary btn-sm btn-install"
@@ -61,4 +77,12 @@ export default class WebModItem extends React.Component {
         const socket = this.context;
         socket.emit('carrot install', { mod_key: [this.props.mod.key] });
     };
+
+    openModInfo = () => {
+        this.setState({ modInfoOpen: true });
+    };
+
+    closeModInfo = () => {
+        this.setState({ modInfoOpen: false });
+    }
 }

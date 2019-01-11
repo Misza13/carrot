@@ -43,6 +43,7 @@ class ModModel(BaseModModel):
         self.download_count = Autoproperty(int)
         self.categories = Autoproperty(list, [])
         self.avatar = Autoproperty(str)
+        self.description = Autoproperty(str)
 
 
 class ModFileModel(Automappable):
