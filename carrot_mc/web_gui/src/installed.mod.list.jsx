@@ -1,8 +1,8 @@
 import React from 'react';
 
-import WebModItem from './web.mod.item';
+import InstalledModItem from "./installed.mod.item";
 
-export default class WebModList extends React.Component {
+export default class InstalledModList extends React.Component {
     constructor(props) {
         super(props);
 
@@ -12,7 +12,7 @@ export default class WebModList extends React.Component {
     render() {
         return (
             <div className="container mod-list">
-                {this.props.mods.map(mod => <WebModItem key={mod.key} mod={mod} />)}
+                {this.props.mods.map(mod => <InstalledModItem key={mod.key} mod={mod} />)}
             </div>
         );
     }

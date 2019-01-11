@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 import 'bootstrap';
 import './main.css';
 
-import CarrotApp from './app.jsx';
+import CarrotApp from './app';
 
 import SocketContext from './socket.context.jsx';
 

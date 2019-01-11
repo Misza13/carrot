@@ -13,7 +13,11 @@ module.exports = {
         rules: [
             {
                 test: /\.jsx$/,
-                use: ["babel-loader"]
+                use: ["babel-loader"],
+                exclude: /node_modules/,
+                resolve: {
+                    extensions: ['.js', '.jsx'],
+                }
             },
             {
                 test: /\.(sa|sc|c)ss$/,
