@@ -230,6 +230,12 @@ class CarrotService:
 
             self.printer.handle('mod_disabled', Namespace(mod=local_mod))
 
+    def search(self, args):
+        if args.mod_key is not None:
+            return self.backend.search_by_mod_key(mod_key=args.mod_key, mc_version=args.mc_version)
+
+        return []
+
 
 class InstallationManager:
     def __init__(self, backend_service, printer):

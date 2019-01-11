@@ -14,7 +14,6 @@ export default class CarrotApp extends React.Component {
 
         this.state = {
             installed_mods: [],
-            web_mods: [],
             web_list_open: false
         };
     }
@@ -56,7 +55,7 @@ export default class CarrotApp extends React.Component {
                         <InstalledModList mods={this.state.installed_mods} />
                     </div>
                     {this.state.web_list_open && <div className="col web-mods-col">
-                        <WebModList mods={this.state.web_mods} />
+                        <WebModList />
                     </div>}
                 </div>
             </div>
@@ -79,10 +78,6 @@ export default class CarrotApp extends React.Component {
         });
 
         this.requestGetCarrot();
-
-        fetch('https://api.carrot-mc.xyz/prod/mods')
-            .then(response => response.json())
-            .then(response => this.setState({ web_mods: response.result }));
     }
 
     handleRefreshClick = () => {

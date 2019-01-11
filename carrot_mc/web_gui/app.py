@@ -51,6 +51,12 @@ def send_static(path):
     return send_from_directory('static', path, cache_timeout=-1)
 
 
+@socketio.on('carrot search')
+def handle_search(event):
+    result = carrot_service.search(Namespace(**event))
+    socketio.emit('carrot search', [r.to_dict() for r in result])
+
+
 @socketio.on('carrot install')
 def handle_install(event):
     carrot_service.install(Namespace(**event, channel=None))
