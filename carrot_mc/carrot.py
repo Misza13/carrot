@@ -232,7 +232,7 @@ class CarrotService:
 
     def search(self, args):
         if args.mod_key is not None:
-            return self.backend.search_by_mod_key(mod_key=args.mod_key, mc_version=args.mc_version)
+            return self.backend.search_by_mod_key(**vars(args))
 
         return []
 
