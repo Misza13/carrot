@@ -18,7 +18,7 @@ export default class CarrotApp extends React.Component {
             web_list_open: false
         };
     }
-6
+
     render() {
         return (
             <div id="page-container" className="container">
