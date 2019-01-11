@@ -1,9 +1,10 @@
 mods.json
 
 # These files are auto-generated (included in distribution but not in source)
-carrot_mc/web_gui/static/main.css
 carrot_mc/web_gui/static/main.js
 carrot_mc/web_gui/static/main.js.map
+carrot_mc/web_gui/static/main.css
+carrot_mc/web_gui/static/main.css.map
 
 .carrot_cache/
 *.jar

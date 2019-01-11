@@ -1,0 +1,21 @@
+.mod-info-row {
+    border: solid 1px #28F;
+    min-height: 64px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.mod-info-row + .mod-info-row {
+   border-top:0;
+}
+
+.btn-install {
+    border-color: limegreen;
+    color: limegreen;
+}
+
+.btn-install:hover {
+    border-color: limegreen;
+    background-color: limegreen;
+    color: #222;
+}

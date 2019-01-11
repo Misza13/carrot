@@ -1,5 +1,7 @@
 const path = require('path');
 
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+
 module.exports = {
     mode: "production",
     entry: "./src/main.jsx",
@@ -14,30 +16,12 @@ module.exports = {
                 use: ["babel-loader"]
             },
             {
-                test: /\.css$/,
+                test: /\.(sa|sc|c)ss$/,
                 use: [
-                    {
-                        loader: "file-loader",
-                        options: {
-                            name: "main.css"
-                        }
-                    },
-                    "extract-loader",
-                    "css-loader"
-                ]
-            },
-            {
-                test: /\.scss/,
-                use: [
-                    {
-                        loader: "file-loader",
-                        options: {
-                            name: "main.css"
-                        },
-                    },
-                    "extract-loader",
-                    "scss-loader"
-                ]
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    'sass-loader',
+                ],
             },
             {
                 test: /\.(woff2?|svg)$/,
@@ -48,5 +32,11 @@ module.exports = {
                 loader: 'file-loader'
             },
         ]
-    }
+    },
+    plugins: [
+        new MiniCssExtractPlugin({
+            filename: '[name].css',
+            chunkFilename: '[id].css',
+        })
+    ]
 };
