@@ -32,10 +32,10 @@ def handle_install(event):
     carrot_service.install(InstallRequest(event))
 
 
-@socketio.on('get-carrot')
-def handle_get_carrot():
-    carrot = carrot_service.read_carrot()
-    socketio.emit('carrot', carrot.to_dict())
+@socketio.on('carrot status')
+def handle_carrot_status():
+    carrot = carrot_service.get_status()
+    socketio.emit('carrot result status', carrot.to_dict())
 
 
 def run_socket_app():

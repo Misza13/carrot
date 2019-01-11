@@ -66,8 +66,8 @@ export default class CarrotApp extends React.Component {
     componentDidMount() {
         const socket = this.context;
 
-        socket.on('carrot', carrot => {
-            this.setState({ installed_mods: carrot.mods });
+        socket.on('carrot result status', carrot_status => {
+            this.setState({ installed_mods: carrot_status.mods });
         });
 
         this.requestGetCarrot();
@@ -91,6 +91,6 @@ export default class CarrotApp extends React.Component {
 
     requestGetCarrot() {
         const socket = this.context;
-        socket.emit('get-carrot');
+        socket.emit('carrot status');
     }
 }
