@@ -2,7 +2,7 @@ from argparse import ArgumentParser, SUPPRESS
 
 from carrot_mc.backend import BackendService
 from carrot_mc.carrot import CarrotService, InstallationManager
-
+from carrot_mc.colors import Colorizer as clr
 
 def main():
     commands = [
@@ -54,11 +54,52 @@ class StatusCommand(Command):
 
     def handle_args(self, args):
         if self.carrot_service.initialized():
-            print('Mod repo status: OK')
-            self.carrot_service.status(args)
+            carrot = self.carrot_service.get_status()
+
+            dep_count = 0
+            disabled_count = 0
+            missing_file_err = []
+            bad_md5_err = []
+
+            for mod in carrot.mods:
+                if mod.dependency:
+                    dep_count += 1
+
+                if mod.disabled:
+                    disabled_count += 1
+
+                if mod.file_missing:
+                    missing_file_err.append(mod)
+                else:
+                    if mod.actual_file_md5 != mod.file.file_md5:
+                        bad_md5_err.append(mod)
+
+            print(f'Mods installed: {len(carrot.mods)}')
+
+            if dep_count:
+                print(f'of which dependencies: {dep_count}')
+
+            if disabled_count > 0:
+                print(f'Disabled mod(s): {disabled_count}')
+
+            if len(missing_file_err) + len(bad_md5_err) == 0:
+                print('All mod files seem to be in order.')
+            else:
+                if missing_file_err:
+                    print(f'{len(missing_file_err)} mod(s) have missing files:')
+                    for mod in missing_file_err:
+                        print(f'\t{clr.mod_name(mod.name)}: missing file {clr.file_name(mod.file.file_name)}')
+
+                if bad_md5_err:
+                    print(f'{len(bad_md5_err)} mod(s) have possibly corrupted files:')
+                    for mod in bad_md5_err:
+                        actual_file_name = mod.file.file_name
+                        if mod.disabled:
+                            actual_file_name += '.disabled'
+                        print(f'\t{clr.mod_name(mod.name)}: file {clr.file_name(actual_file_name)} has hash {clr.file_hash(mod.actual_file_md5)} instead of {clr.file_hash(mod.file.file_md5)}')
+
         else:
-            print('Mod repo status: INVALID')
-            print('This directory does not appear to be a valid mod repo.')
+            print(clr.error('This directory does not appear to be a valid mod repo.'))
 
 
 class ListCommand(Command):
