@@ -16,7 +16,8 @@ export default class WebModList extends React.Component {
             mods: [],
             isLoadingMore: false,
             pageNum: 0,
-            hasMore: true
+            hasMore: true,
+            searchMode: 'text'
         }
     }
 
@@ -25,13 +26,53 @@ export default class WebModList extends React.Component {
             <div className="container mod-list">
                 <div className="row">
                     <div className="col">
-                        <div className="btn-group web-mods-toolbar" role="group">
-                            <button
-                                type="button"
-                                className="btn btn-outline-warning"
-                                onClick={this.handleCloseWebClick}>
-                                Close
-                            </button>
+                        <div className="input-group web-mods-toolbar" role="group">
+                            {/* Search by dropdown */}
+                            <div className="input-group-prepend">
+                                <button type="button"
+                                        className="btn btn-outline-secondary"
+                                        data-toggle="dropdown"
+                                        style="width: 40px">
+                                    {this.state.searchMode === 'text' && <i className="far fa-file-alt" />}
+                                    {this.state.searchMode === 'key' && <i className="fas fa-key" />}
+                                    {this.state.searchMode === 'owner' && <i className="far fa-user" />}
+                                </button>
+                                <div className="dropdown-menu">
+                                    <a className="dropdown-item" href="#" onClick={this.handleSearchByTextClick}>
+                                        By title and description
+                                    </a>
+                                    <a className="dropdown-item" href="#" onClick={this.handleSearchByKeyClick}>
+                                        By key
+                                    </a>
+                                    <a className="dropdown-item" href="#" onClick={this.handleSearchByOwnerClick}>
+                                        By owner
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Search input box */}
+                            <input
+                                type="text"
+                                className="form-control" />
+
+                            {/* Search button */}
+                            <div className="input-group-append">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-secondary">
+                                    <i className="fas fa-search" />
+                                </button>
+                            </div>
+
+                            {/* Close web mods browsing button */}
+                            <div className="input-group-append">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-warning"
+                                    onClick={this.handleCloseWebClick}>
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -98,4 +139,16 @@ export default class WebModList extends React.Component {
             page_num: this.state.pageNum + 1
         });
     }
+
+    handleSearchByTextClick = () => {
+        this.setState({ searchMode: 'text' });
+    };
+
+    handleSearchByKeyClick = () => {
+        this.setState({ searchMode: 'key' });
+    };
+
+    handleSearchByOwnerClick = () => {
+        this.setState({ searchMode: 'owner' });
+    };
 }
