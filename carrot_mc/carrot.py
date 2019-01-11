@@ -6,8 +6,7 @@ from collections import namedtuple
 
 from queue import Queue
 
-from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel
-from carrot_mc.backend import BackendService
+from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel, InstalledModStatusModel
 from carrot_mc.colors import Colorizer as clr
 from carrot_mc.meta import VERSION
 
@@ -48,9 +47,44 @@ class CarrotService:
 
         with open(MODS_FILE_NAME, 'w+') as cf:
             cf.write(json.dumps(d, indent=True))
-    
-    def status(self, args):
+
+    def get_status(self):
         carrot = self.read_carrot()
+
+        mod_statuses = []
+
+        for mod in carrot.mods:
+            mod_status = InstalledModStatusModel.from_dict(mod.to_dict())
+
+            actual_file_name = None
+            if os.path.exists(mod.file.file_name):
+                actual_file_name = mod.file.file_name
+                mod_status.disabled = False
+                mod_status.file_missing = False
+            elif os.path.exists(mod.file.file_name + '.disabled'):
+                actual_file_name = mod.file.file_name + '.disabled'
+                mod_status.disabled = True
+                mod_status.file_missing = False
+            else:
+                mod_status.disabled = True
+                mod_status.file_missing = True
+
+            if not mod_status.file_missing:
+                file_contents = open(actual_file_name, 'rb').read()
+
+                md5 = hashlib.md5()
+                md5.update(file_contents)
+
+                mod_status.actual_file_md5 = md5.hexdigest()
+
+            mod_statuses.append(mod_status)
+
+        carrot.mods = mod_statuses
+
+        return carrot
+
+    def status(self, args):
+        carrot = self.get_status()
         
         dep_count = 0
         disabled_count = 0
@@ -60,24 +94,15 @@ class CarrotService:
         for mod in carrot.mods:
             if mod.dependency:
                 dep_count += 1
-            
-            actual_file_name = None
-            if os.path.exists(mod.file.file_name):
-                actual_file_name = mod.file.file_name
-            elif os.path.exists(mod.file.file_name + '.disabled'):
+
+            if mod.disabled:
                 disabled_count += 1
-                actual_file_name = mod.file.file_name + '.disabled'
-            
-            if not actual_file_name:
+
+            if mod.file_missing:
                 missing_file_err.append(mod)
             else:
-                file_contents = open(actual_file_name, 'rb').read()
-                
-                md5 = hashlib.md5()
-                md5.update(file_contents)
-                
-                if md5.hexdigest() != mod.file.file_md5:
-                    bad_md5_err.append((mod, actual_file_name, md5.hexdigest()))
+                if mod.actual_file_md5 != mod.file.file_md5:
+                    bad_md5_err.append(mod)
         
         print(f'Mods installed: {len(carrot.mods)}')
         
@@ -97,10 +122,12 @@ class CarrotService:
         
             if bad_md5_err:
                 print(f'{len(bad_md5_err)} mod(s) have possibly corrupted files:')
-                for mod, actual_file_name, actual_md5 in bad_md5_err:
-                    print(f'\t{clr.mod_name(mod.name)}: file {clr.file_name(actual_file_name)} has hash {clr.file_hash(actual_md5)} instead of {clr.file_hash(mod.file.file_md5)}')
+                for mod in bad_md5_err:
+                    actual_file_name = mod.file.file_name
+                    if mod.disabled:
+                        actual_file_name += '.disabled'
+                    print(f'\t{clr.mod_name(mod.name)}: file {clr.file_name(actual_file_name)} has hash {clr.file_hash(mod.actual_file_md5)} instead of {clr.file_hash(mod.file.file_md5)}')
                 
-    
     def install(self, args):
         carrot = self.read_carrot()
         if not carrot:
