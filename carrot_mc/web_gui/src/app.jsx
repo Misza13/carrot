@@ -14,20 +14,50 @@ export default class CarrotApp extends React.Component {
 
         this.state = {
             installed_mods: [],
-            web_mods: []
+            web_mods: [],
+            web_list_open: false
         };
     }
-
+6
     render() {
         return (
             <div id="page-container" className="container">
                 <div className="row">
-                    <div className="col-5 installed-mods-col">
+                    <div className="col">
+                        <div className="btn-group installed-mods-toolbar" role="group">
+                            <button
+                                type="button"
+                                className="btn btn-outline-success"
+                                onClick={this.handleRefreshClick}>
+                                Refresh
+                            </button>
+                            {!this.state.web_list_open && <button
+                                type="button"
+                                className="btn btn-outline-primary"
+                                onClick={this.handleInstallMoreClick}>
+                                Install more
+                            </button>}
+                        </div>
+                    </div>
+
+                    {this.state.web_list_open && <div className="col">
+                        <div className="btn-group web-mods-toolbar" role="group">
+                            <button
+                                type="button"
+                                className="btn btn-outline-warning"
+                                onClick={this.handleCloseWebClick}>
+                                Close
+                            </button>
+                        </div>
+                    </div>}
+                </div>
+                <div className="row">
+                    <div className="col installed-mods-col">
                         <InstalledModList mods={this.state.installed_mods} />
                     </div>
-                    <div className="col-7 web-mods-col">
+                    {this.state.web_list_open && <div className="col web-mods-col">
                         <WebModList mods={this.state.web_mods} />
-                    </div>
+                    </div>}
                 </div>
             </div>
         );
@@ -40,10 +70,27 @@ export default class CarrotApp extends React.Component {
             this.setState({ installed_mods: carrot.mods });
         });
 
-        socket.emit('get-carrot');
+        this.requestGetCarrot();
 
         fetch('https://api.carrot-mc.xyz/prod/mods')
             .then(response => response.json())
             .then(response => this.setState({ web_mods: response.result }));
+    }
+
+    handleRefreshClick = () => {
+        this.requestGetCarrot();
+    };
+
+    handleInstallMoreClick = () => {
+        this.setState({ web_list_open: true })
+    };
+
+    handleCloseWebClick = () => {
+        this.setState({ web_list_open: false })
+    };
+
+    requestGetCarrot() {
+        const socket = this.context;
+        socket.emit('get-carrot');
     }
 }

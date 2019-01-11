@@ -1,13 +1,23 @@
 .installed-mods-col {
     float: left;
     width: 35%;
-    height: 95vh;
+    height: 90vh;
     overflow-y: scroll;
 }
 
 .web-mods-col {
     float: left;
     width: 65%;
-    height: 95vh;
+    height: 90vh;
     overflow-y: scroll;
+}
+
+.installed-mods-toolbar {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.web-mods-toolbar {
+    margin-top: 1em;
+    margin-bottom: 1em;
 }
