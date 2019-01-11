@@ -15,6 +15,11 @@ class SocketEventRouter:
     def handle(self, event: str, payload=None):
         if not payload:
             socketio.emit(event, {})
+            return
+
+        if isinstance(payload, str):
+            socketio.emit(event, payload)
+            return
 
         if isinstance(payload, Namespace):
             payload = vars(payload)

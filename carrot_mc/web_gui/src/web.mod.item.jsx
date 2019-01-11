@@ -50,6 +50,13 @@ export default class WebModItem extends React.Component {
         );
     }
 
+    componentDidMount() {
+        const socket = this.context;
+        socket.on('info all_mod_install_complete', () => {
+            socket.emit('carrot status');
+        });
+    }
+
     handleInstallClick = () => {
         const socket = this.context;
         socket.emit('carrot install', { mod_key: [this.props.mod.key] });
