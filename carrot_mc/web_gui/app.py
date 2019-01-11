@@ -11,7 +11,7 @@ socketio = SocketIO(app)
 
 
 class SocketEventRouter:
-    def handle(self, event: str, payload):
+    def handle(self, event: str, payload=None):
         socketio.emit(event, payload)
 
 

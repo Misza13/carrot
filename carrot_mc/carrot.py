@@ -1,9 +1,8 @@
 import os
 import json
 import hashlib
-
+from argparse import Namespace
 from collections import namedtuple
-
 from queue import Queue
 
 from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel, InstalledModStatusModel
@@ -87,7 +86,7 @@ class CarrotService:
     def install(self, args):
         carrot = self.read_carrot()
         if not carrot:
-            print('Mod repo not initialized. Use "carrot init".')
+            self.printer.handle('error no_repo')
             return
 
         if args.channel:
@@ -109,7 +108,7 @@ class CarrotService:
             mods = self.backend.search_by_mod_key(mod_key, carrot.mc_version)
 
             if not mods:
-                print('No matches found, please verify mod key specified or use "carrot search" to find a mod to install.')
+                self.printer.handle('error no_mod_key_match')
                 return
 
             exact_match = find_mod_by_key(mods, mod_key)
@@ -125,30 +124,24 @@ class CarrotService:
                 ))
 
             else:
-                print(f'No mod found in top downloaded mods matching exactly the key "{clr.mod_key(mod_key)}". These are the top downloaded matches:')
-                for mod in mods:
-                    print(f'[{clr.mod_key(mod.key)}] {clr.mod_name(mod.name)} by {clr.mod_owner(mod.owner)}')
-                    print(f'\t{clr.mod_blurb(mod.blurb)}')
-                    if mod.categories:
-                        print('\t' + ', '.join([f'{clr.mod_category(c)}' for c in mod.categories]))
+                self.printer.handle('match list', Namespace(mod_key=mod_key, mods=mods))
                 return
 
         self.installer.run(carrot, args)
 
         self.save_carrot(carrot)
 
-
     def update(self, args):
         carrot = self.read_carrot()
         if not carrot:
-            print('Mod repo not initialized. Use "carrot init".')
+            self.printer.handle('error no_repo')
             return
 
         if args.mod_key:
             local_mod = find_mod_by_key(carrot.mods, args.mod_key)
 
             if not local_mod:
-                print(f'No mod matching exactly the key "{clr.mod_key(args.mod_key)}" is currently installed.')
+                self.printer.handle('error mod_not_installed', Namespace(mod_key=args.mod_key))
                 return
 
             if args.channel:
@@ -165,7 +158,7 @@ class CarrotService:
 
         else:
             if not carrot.mods:
-                print(f'No mods are installed. Use "{clr.cli("carrot install")}" to install some.')
+                self.printer.handle('error no_mods_installed')
                 return
 
             for mod in carrot.mods:
@@ -190,53 +183,53 @@ class CarrotService:
         # TODO: Dependency handling
         carrot = self.read_carrot()
         if not carrot:
-            print('Mod repo not initialized. Use "carrot init".')
+            self.printer.handle('error no_repo')
             return
 
         for mod_key in args.mod_key:
             local_mod = find_mod_by_key(carrot.mods, mod_key)
 
             if not local_mod:
-                print(f'No mod matching exactly the key "{clr.mod_key(mod_key)}" is currently installed.')
+                self.printer.handle('error mod_not_installed', Namespace(mod_key=mod_key))
                 continue
 
             if not os.path.exists(local_mod.file.file_name + '.disabled'):
                 if os.path.exists(local_mod.file.file_name):
-                    print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is already enabled.')
+                    self.printer.handle('warn mod_already_enabled', Namespace(mod=local_mod))
                     continue
 
-                print(f'Mod file for {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is {clr.error("missing")}.')
+                self.printer.handle('error mod_file_missing', Namespace(mod=local_mod))
                 continue
 
             os.replace(local_mod.file.file_name + '.disabled', local_mod.file.file_name)
 
-            print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} enabled.')
+            self.printer.handle('mod_enabled', Namespace(mod=local_mod))
 
     def disable(self, args):
         # TODO: Lots of code sharing with enable()
         carrot = self.read_carrot()
         if not carrot:
-            print('Mod repo not initialized. Use "carrot init".')
+            self.printer.handle('error no_repo')
             return
 
         for mod_key in args.mod_key:
             local_mod = find_mod_by_key(carrot.mods, mod_key)
 
             if not local_mod:
-                print(f'No mod matching exactly the key "{clr.mod_key(mod_key)}" is currently installed.')
+                self.printer.handle('error mod_not_installed', Namespace(mod_key=mod_key))
                 continue
 
             if not os.path.exists(local_mod.file.file_name):
                 if os.path.exists(local_mod.file.file_name + '.disabled'):
-                    print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is already disabled.')
+                    self.printer.handle('warn mod_already_disabled', Namespace(mod=local_mod))
                     continue
 
-                print(f'Mod file for {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} is {clr.error("missing")}.')
+                self.printer.handle('error mod_file_missing', Namespace(mod=local_mod))
                 continue
 
             os.replace(local_mod.file.file_name, local_mod.file.file_name + '.disabled')
 
-            print(f'Mod {clr.mod_name(local_mod.name)} {clr.mod_key("[" + mod_key + "]")} disabled.')
+            self.printer.handle('mod_disabled', Namespace(mod=local_mod))
 
 
 class InstallationManager:
