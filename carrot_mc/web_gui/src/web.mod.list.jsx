@@ -15,9 +15,10 @@ export default class WebModList extends React.Component {
         this.state = {
             mods: [],
             isLoadingMore: false,
-            pageNum: 0,
+            pageNum: 1,
             hasMore: true,
-            searchMode: 'text'
+            searchMode: 'key',
+            searchTerm: ''
         }
     }
 
@@ -32,7 +33,7 @@ export default class WebModList extends React.Component {
                                 <button type="button"
                                         className="btn btn-outline-secondary"
                                         data-toggle="dropdown"
-                                        style="width: 40px">
+                                        style={{width: "40px"}}>
                                     {this.state.searchMode === 'text' && <i className="far fa-file-alt" />}
                                     {this.state.searchMode === 'key' && <i className="fas fa-key" />}
                                     {this.state.searchMode === 'owner' && <i className="far fa-user" />}
@@ -53,13 +54,17 @@ export default class WebModList extends React.Component {
                             {/* Search input box */}
                             <input
                                 type="text"
-                                className="form-control" />
+                                className="form-control"
+                                value={this.state.searchTerm}
+                                onChange={this.handleSearchInputChange}
+                                onKeyUp={this.handleSearchKeyUp}/>
 
                             {/* Search button */}
                             <div className="input-group-append">
                                 <button
                                     type="button"
-                                    className="btn btn-outline-secondary">
+                                    className="btn btn-outline-secondary"
+                                    onClick={this.handleSearchSubmit}>
                                     <i className="fas fa-search" />
                                 </button>
                             </div>
@@ -123,7 +128,7 @@ export default class WebModList extends React.Component {
                     isLoadingMore: true,
                     pageNum: this.state.pageNum + 1
                 }, () => {
-                    this.doSearch();
+                    this.doSearch('');
                 });
             }
         }
@@ -133,10 +138,10 @@ export default class WebModList extends React.Component {
         const socket = this.context;
 
         socket.emit('carrot search', {
-            mod_key: '', //TODO: Load from user input control
+            mod_key: this.state.searchTerm,
             mc_version: '1.12.2', //TODO: hardcoded version
             page_size: this.defaultPageSize,
-            page_num: this.state.pageNum + 1
+            page_num: this.state.pageNum
         });
     }
 
@@ -150,5 +155,29 @@ export default class WebModList extends React.Component {
 
     handleSearchByOwnerClick = () => {
         this.setState({ searchMode: 'owner' });
+    };
+
+    handleSearchInputChange = (e) => {
+        this.setState({ searchTerm: e.target.value });
+    };
+
+    handleSearchKeyUp = (e) => {
+        if (e.which === 13) {
+            this.handleSearchSubmit();
+        }
+    };
+
+    handleSearchSubmit = () => {
+        if (this.state.isLoadingMore) {
+            return;
+        }
+
+        this.setState({
+            mods: [],
+            pageNum: 1,
+            isLoadingMore: true
+        }, () => {
+            this.doSearch();
+        });
     };
 }
