@@ -4,8 +4,16 @@
     overflow-y: scroll;
 }
 
-
 .web-mods-toolbar {
     margin-top: 1em;
     margin-bottom: 1em;
+}
+
+.loading {
+    background-image: url("/static/img/Eclipse_loading.svg");
+    background-position-x: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    height: 128px;
 }
