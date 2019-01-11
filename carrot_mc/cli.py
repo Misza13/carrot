@@ -2,6 +2,7 @@ from argparse import ArgumentParser, SUPPRESS
 
 from carrot_mc.backend import BackendService
 from carrot_mc.carrot import CarrotService, InstallationManager
+from carrot_mc.cli_printer import CliEventPrinter
 from carrot_mc.colors import Colorizer as clr
 
 def main():
@@ -32,9 +33,10 @@ def main():
 
 
 class Command(object):
+    cli_printer = CliEventPrinter()
     backend_service = BackendService()
-    installation_manager = InstallationManager(backend_service)
-    carrot_service = CarrotService(backend_service, installation_manager)
+    installation_manager = InstallationManager(backend_service, cli_printer)
+    carrot_service = CarrotService(backend_service, installation_manager, cli_printer)
 
     def register_help(self, subparsers):
         raise NotImplementedError()

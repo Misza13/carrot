@@ -9,9 +9,17 @@ from carrot_mc.carrot import CarrotService, InstallationManager
 app = Flask(__name__, static_url_path='')
 socketio = SocketIO(app)
 
+
+class SocketEventRouter:
+    def handle(self, event: str, payload):
+        socketio.emit(event, payload)
+
+
+socket_router = SocketEventRouter()
+
 backend_service = BackendService()
-installation_manager = InstallationManager(backend_service)
-carrot_service = CarrotService(backend_service, installation_manager)
+installation_manager = InstallationManager(backend_service, socket_router)
+carrot_service = CarrotService(backend_service, installation_manager, socket_router)
 
 
 @app.route('/')

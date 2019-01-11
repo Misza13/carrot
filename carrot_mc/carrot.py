@@ -20,9 +20,10 @@ InstallRequest = namedtuple('InstallRequest', ['mod_info', 'dependency'])
 
 
 class CarrotService:
-    def __init__(self, backend_service, installation_manager):
+    def __init__(self, backend_service, installation_manager, printer):
         self.backend = backend_service
         self.installer = installation_manager
+        self.printer = printer
     
     def read_carrot(self):
         if os.path.exists(MODS_FILE_NAME):
@@ -114,7 +115,7 @@ class CarrotService:
             exact_match = find_mod_by_key(mods, mod_key)
 
             if exact_match:
-                print('Found exact match')
+                self.printer.handle('info', 'Found exact match')
 
                 self.installer.queue_fetch(FetchRequest(
                     mod_key=mod_key,
@@ -239,8 +240,9 @@ class CarrotService:
 
 
 class InstallationManager:
-    def __init__(self, backend_service):
+    def __init__(self, backend_service, printer):
         self.backend = backend_service
+        self.printer = printer
 
         self.fetch_q = Queue()
         self.download_q = Queue()
@@ -263,19 +265,19 @@ class InstallationManager:
             req = self.fetch_q.get()
             self.do_fetch(req, carrot, args)
 
-        print('Mod check phase complete. Proceeding to download...')
+        self.printer.handle('info', 'Mod check phase complete. Proceeding to download...')
 
         while not self.download_q.empty():
             req = self.download_q.get()
             self.do_download(req, carrot, args)
 
-        print('Download phase complete. Proceeding to installation...')
+        self.printer.handle('info', 'Download phase complete. Proceeding to installation...')
 
         while not self.install_q.empty():
             req = self.install_q.get()
             self.do_install(req, carrot, args)
 
-        print('Installation phase complete.')
+        self.printer.handle('info', 'Installation phase complete.')
 
     def do_fetch(self, req: FetchRequest, carrot: CarrotModel, args):
         print(f'Checking mod {clr.mod_key(str(req.mod_key))}...', end=' ')

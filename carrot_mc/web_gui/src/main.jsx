@@ -10,6 +10,7 @@ import CarrotApp from './app';
 import SocketContext from './socket.context.jsx';
 
 const socket = io('http://localhost:5000/');
+socket.on('info', info => console.log(info));
 
 ReactDOM.render(
     <SocketContext.Provider value={socket}>
