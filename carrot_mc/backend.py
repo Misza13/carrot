@@ -7,12 +7,32 @@ API_ENDPOINT = 'https://api.carrot-mc.xyz/prod/'
 
 
 class BackendService:
-    def search_by_mod_key(self, mod_key: str, mc_version: str, page_size: int = 30, page_num: int = 1) -> list:
+    def search(
+            self,
+            mc_version: str,
+            mod_key: str = None,
+            mod_name: str = None,
+            owner: str = None,
+            page_size: int = 30,
+            page_num: int = 1) -> list:
+        url = f'{API_ENDPOINT}mods?mc_version={mc_version}&page_size={page_size}&page_num={page_num}'
+
+        if mod_key:
+            url += f'&mod_key={mod_key}'
+
+        if mod_name:
+            url += f'&mod_name={mod_name}'
+
+        if owner:
+            url += f'&owner={owner}'
+
         r = requests.get(
-            url=f'{API_ENDPOINT}mods?mc_version={mc_version}&mod_key={mod_key}&page_size={page_size}&page_num={page_num}',
+            url=url,
             headers=self._get_default_headers()
         )
-        mods = [ModModel.from_dict(m) for m in r.json()['result']]
+
+        j = r.json()
+        mods = [ModModel.from_dict(m) for m in j['result']]
         return mods
 
     def get_mod_info(self, mod_key: str) -> ModModel:

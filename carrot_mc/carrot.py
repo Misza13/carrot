@@ -104,7 +104,7 @@ class CarrotService:
 
         else:
             mod_key = args.mod_key[0]
-            mods = self.backend.search_by_mod_key(mod_key, carrot.mc_version)
+            mods = self.backend.search(mod_key=mod_key, mc_version=carrot.mc_version)
 
             if not mods:
                 self.printer.handle('error no_mod_key_match')
@@ -231,10 +231,7 @@ class CarrotService:
             self.printer.handle('mod_disabled', Namespace(mod=local_mod))
 
     def search(self, args):
-        if args.mod_key is not None:
-            return self.backend.search_by_mod_key(**vars(args))
-
-        return []
+        return self.backend.search(**vars(args))
 
 
 class InstallationManager:

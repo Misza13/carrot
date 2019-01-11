@@ -17,7 +17,7 @@ export default class WebModList extends React.Component {
             isLoadingMore: false,
             pageNum: 1,
             hasMore: true,
-            searchMode: 'key',
+            searchMode: 'name',
             searchTerm: ''
         }
     }
@@ -34,13 +34,13 @@ export default class WebModList extends React.Component {
                                         className="btn btn-outline-secondary"
                                         data-toggle="dropdown"
                                         style={{width: "40px"}}>
-                                    {this.state.searchMode === 'text' && <i className="far fa-file-alt" />}
+                                    {this.state.searchMode === 'name' && <i className="far fa-file-alt" />}
                                     {this.state.searchMode === 'key' && <i className="fas fa-key" />}
                                     {this.state.searchMode === 'owner' && <i className="far fa-user" />}
                                 </button>
                                 <div className="dropdown-menu">
-                                    <a className="dropdown-item" href="#" onClick={this.handleSearchByTextClick}>
-                                        By title and description
+                                    <a className="dropdown-item" href="#" onClick={this.handleSearchByNameClick}>
+                                        By name
                                     </a>
                                     <a className="dropdown-item" href="#" onClick={this.handleSearchByKeyClick}>
                                         By key
@@ -137,16 +137,29 @@ export default class WebModList extends React.Component {
     doSearch() {
         const socket = this.context;
 
-        socket.emit('carrot search', {
-            mod_key: this.state.searchTerm,
+        let searchObject = {
             mc_version: '1.12.2', //TODO: hardcoded version
             page_size: this.defaultPageSize,
             page_num: this.state.pageNum
-        });
+        };
+
+        switch (this.state.searchMode) {
+            case 'name':
+                searchObject.mod_name = this.state.searchTerm;
+                break;
+            case 'key':
+                searchObject.mod_key = this.state.searchTerm;
+                break;
+            case 'owner':
+                searchObject.owner = this.state.searchTerm;
+                break;
+        }
+
+        socket.emit('carrot search', searchObject);
     }
 
-    handleSearchByTextClick = () => {
-        this.setState({ searchMode: 'text' });
+    handleSearchByNameClick = () => {
+        this.setState({ searchMode: 'name' });
     };
 
     handleSearchByKeyClick = () => {
