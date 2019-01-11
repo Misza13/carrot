@@ -11,13 +11,6 @@ export default class WebModItem extends React.Component {
         super(props);
 
         this.state = {};
-
-        this.handleInstallClick = this.handleInstallClick.bind(this);
-    }
-
-    handleInstallClick(e) {
-        const socket = this.context;
-        socket.emit('install', { mod_key: this.props.mod.key });
     }
 
     render() {
@@ -56,4 +49,9 @@ export default class WebModItem extends React.Component {
             </div>
         );
     }
+
+    handleInstallClick = () => {
+        const socket = this.context;
+        socket.emit('install', { mod_key: this.props.mod.key });
+    };
 }
