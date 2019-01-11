@@ -33,7 +33,7 @@ export default class WebModItem extends React.Component {
                         <div className="col-2">
                             <button
                                 type="button"
-                                className="btn btn-outline-primary btn-install"
+                                className="btn btn-outline-primary btn-sm btn-install"
                                 title="Install"
                                 onClick={this.handleInstallClick}>
                                 <i className="fas fa-download" />
