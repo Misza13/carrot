@@ -46,7 +46,7 @@ def send_static(path):
     return send_from_directory('static', path, cache_timeout=-1)
 
 
-@socketio.on('install')
+@socketio.on('carrot install')
 def handle_install(event):
     carrot_service.install(Namespace(**event, channel=None))
 

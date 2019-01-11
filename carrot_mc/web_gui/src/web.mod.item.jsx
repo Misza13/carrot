@@ -52,6 +52,6 @@ export default class WebModItem extends React.Component {
 
     handleInstallClick = () => {
         const socket = this.context;
-        socket.emit('install', { mod_key: [this.props.mod.key] });
+        socket.emit('carrot install', { mod_key: [this.props.mod.key] });
     };
 }
