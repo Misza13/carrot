@@ -288,7 +288,7 @@ class InstallationManager:
         current_mod = find_mod_by_key(carrot.mods, mod_info.key)
 
         if not mod_info.file:
-            self.printer.handle('info no_files_in_channel', Namespace(mod=mod_info))
+            self.printer.handle('warn no_files_in_channel', Namespace(mod=mod_info))
 
             proceed = False
 
