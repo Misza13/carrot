@@ -17,7 +17,7 @@ body::after {
     height: 0;
     overflow: hidden;
     z-index: -1;
-    content: url("/static/img/Eclipse_loading.svg");
+    content: url("/static/img/Eclipse_loading.svg") url("/static/img/Spin_loading.svg");
 }
 
 span.mod-name {
