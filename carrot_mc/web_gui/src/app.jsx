@@ -14,6 +14,7 @@ export default class CarrotApp extends React.Component {
         super(props);
 
         this.state = {
+            mcVersion: null,
             webListOpen: false,
             installedMods: [],
             installingMods: []
@@ -32,6 +33,7 @@ export default class CarrotApp extends React.Component {
                     </div>
                     {this.state.webListOpen && <div className="col">
                         <WebModList
+                            mcVersion={this.state.mcVersion}
                             installedMods={this.state.installedMods}
                             installingMods={this.state.installingMods}
                             onCloseClick={this.handleWebCloseClick}
@@ -79,12 +81,21 @@ export default class CarrotApp extends React.Component {
     };
 
     handleCarrotStatusChange = (carrot_status) => {
-        let mods = [];
-        _.forEach(carrot_status.mods, (mod) => {
-            mods.push(mod.key);
-        });
+        if (!carrot_status) {
+            this.setState({
+                installedMods: []
+            });
+        } else {
+            let mods = [];
+            _.forEach(carrot_status.mods, (mod) => {
+                mods.push(mod.key);
+            });
 
-        this.setState({ installedMods: mods });
+            this.setState({
+                mcVersion: carrot_status.mc_version,
+                installedMods: mods
+            });
+        }
     };
 
     handleModInstallClick = (mod) => {

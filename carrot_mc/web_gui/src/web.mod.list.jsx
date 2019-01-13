@@ -146,7 +146,7 @@ export default class WebModList extends React.Component {
         const socket = this.context;
 
         let searchObject = {
-            mc_version: '1.12.2', //TODO: hardcoded version
+            mc_version: this.props.mcVersion,
             page_size: this.defaultPageSize,
             page_num: this.state.pageNum
         };

@@ -50,6 +50,9 @@ class CarrotService:
     def get_status(self):
         carrot = self.read_carrot()
 
+        if not carrot:
+            return None
+
         mod_statuses = []
 
         for mod in carrot.mods:

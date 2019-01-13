@@ -82,7 +82,11 @@ class RequestQueue:
 
 def get_carrot_status():
     carrot = carrot_service.get_status()
-    socketio.emit('carrot status', carrot.to_dict())
+
+    if carrot:
+        carrot = carrot.to_dict()
+
+    socketio.emit('carrot status', carrot)
 
 
 @app.route('/')
@@ -102,6 +106,13 @@ def handle_search(event):
         socketio.emit('carrot search', [r.to_dict() for r in result])
 
     socketio.start_background_task(target=do_search, event=event)
+
+
+@socketio.on('carrot init')
+def handle_init(event):
+    carrot_service.initialize(event)
+
+    socketio.start_background_task(target=get_carrot_status)
 
 
 @socketio.on('carrot install')
