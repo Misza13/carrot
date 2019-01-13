@@ -1,0 +1,18 @@
+.installed-mods-col {
+    float: left;
+    height: 90vh;
+    overflow-y: scroll;
+}
+
+.installed-mods-toolbar {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.init-repo .input-group-text,
+.init-repo .modpack-name-box,
+.init-repo #mc_version-select {
+    color: ivory;
+    background-color: #222;
+    border: 1px solid #677;
+}

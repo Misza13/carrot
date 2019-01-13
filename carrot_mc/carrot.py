@@ -1,14 +1,11 @@
 import os
 import json
 import hashlib
-
+from argparse import Namespace
 from collections import namedtuple
-
 from queue import Queue
 
-from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel
-from carrot_mc.backend import BackendService
-from carrot_mc.colors import Colorizer as clr
+from carrot_mc.model import CarrotModel, InstalledModModel, BaseModModel, InstalledModStatusModel
 from carrot_mc.meta import VERSION
 
 
@@ -21,8 +18,10 @@ InstallRequest = namedtuple('InstallRequest', ['mod_info', 'dependency'])
 
 
 class CarrotService:
-    def __init__(self):
-        self.backend = BackendService()
+    def __init__(self, backend_service, installation_manager, printer):
+        self.backend = backend_service
+        self.installer = installation_manager
+        self.printer = printer
     
     def read_carrot(self):
         if os.path.exists(MODS_FILE_NAME):
@@ -47,63 +46,49 @@ class CarrotService:
 
         with open(MODS_FILE_NAME, 'w+') as cf:
             cf.write(json.dumps(d, indent=True))
-    
-    def status(self, args):
+
+    def get_status(self):
         carrot = self.read_carrot()
-        
-        dep_count = 0
-        disabled_count = 0
-        missing_file_err = []
-        bad_md5_err = []
-        
+
+        if not carrot:
+            return None
+
+        mod_statuses = []
+
         for mod in carrot.mods:
-            if mod.dependency:
-                dep_count += 1
-            
+            mod_status = InstalledModStatusModel.from_dict(mod.to_dict())
+
             actual_file_name = None
             if os.path.exists(mod.file.file_name):
                 actual_file_name = mod.file.file_name
+                mod_status.disabled = False
+                mod_status.file_missing = False
             elif os.path.exists(mod.file.file_name + '.disabled'):
-                disabled_count += 1
                 actual_file_name = mod.file.file_name + '.disabled'
-            
-            if not actual_file_name:
-                missing_file_err.append(mod)
+                mod_status.disabled = True
+                mod_status.file_missing = False
             else:
+                mod_status.disabled = True
+                mod_status.file_missing = True
+
+            if not mod_status.file_missing:
                 file_contents = open(actual_file_name, 'rb').read()
-                
+
                 md5 = hashlib.md5()
                 md5.update(file_contents)
-                
-                if md5.hexdigest() != mod.file.file_md5:
-                    bad_md5_err.append((mod, actual_file_name, md5.hexdigest()))
-        
-        print(f'Mods installed: {len(carrot.mods)}')
-        
-        if dep_count:
-            print(f'of which dependencies: {dep_count}')
-        
-        if disabled_count > 0:
-            print(f'Disabled mod(s): {disabled_count}')
-        
-        if len(missing_file_err) + len(bad_md5_err) == 0:
-            print('All mod files seem to be in order.')
-        else:
-            if missing_file_err:
-                print(f'{len(missing_file_err)} mod(s) have missing files:')
-                for mod in missing_file_err:
-                    print(f'\t{clr.mod_name(mod.name)}: missing file {clr.file_name(mod.file.file_name)}')
-        
-            if bad_md5_err:
-                print(f'{len(bad_md5_err)} mod(s) have possibly corrupted files:')
-                for mod, actual_file_name, actual_md5 in bad_md5_err:
-                    print(f'\t{clr.mod_name(mod.name)}: file {clr.file_name(actual_file_name)} has hash {clr.file_hash(actual_md5)} instead of {clr.file_hash(mod.file.file_md5)}')
-                
-    
+
+                mod_status.actual_file_md5 = md5.hexdigest()
+
+            mod_statuses.append(mod_status)
+
+        carrot.mods = mod_statuses
+
+        return carrot
+
     def install(self, args):
         carrot = self.read_carrot()
         if not carrot:
-            print('Mod repo not initialized. Use "carrot init".')
+            self.printer.handle('error no_repo')
             return
 
         if args.channel:
@@ -111,11 +96,9 @@ class CarrotService:
         else:
             channel = carrot.channel
 
-        im = InstallationManager()
-
         if len(args.mod_key) > 1:
             for mod_key in args.mod_key:
-                im.queue_fetch(FetchRequest(
+                self.installer.queue_fetch(FetchRequest(
                     mod_key=mod_key,
                     mc_version=carrot.mc_version,
                     channel=channel,
@@ -124,18 +107,18 @@ class CarrotService:
 
         else:
             mod_key = args.mod_key[0]
-            mods = self.backend.search_by_mod_key(mod_key, carrot.mc_version)
+            mods = self.backend.search(mod_key=mod_key, mc_version=carrot.mc_version)
 
             if not mods:
-                print('No matches found, please verify mod key specified or use "carrot search" to find a mod to install.')
+                self.printer.handle('error no_mod_key_match')
                 return
 
             exact_match = find_mod_by_key(mods, mod_key)
 
             if exact_match:
-                print('Found exact match')
+                self.printer.handle('info', 'Found exact match')
 
-                im.queue_fetch(FetchRequest(
+                self.installer.queue_fetch(FetchRequest(
                     mod_key=mod_key,
                     mc_version=carrot.mc_version,
                     channel=channel,
@@ -143,32 +126,24 @@ class CarrotService:
                 ))
 
             else:
-                print(f'No mod found in top downloaded mods matching exactly the key "{clr.mod_key(mod_key)}". These are the top downloaded matches:')
-                for mod in mods:
-                    print(f'[{clr.mod_key(mod.key)}] {clr.mod_name(mod.name)} by {clr.mod_owner(mod.owner)}')
-                    print(f'\t{clr.mod_blurb(mod.blurb)}')
-                    if mod.categories:
-                        print('\t' + ', '.join([f'{clr.mod_category(c)}' for c in mod.categories]))
+                self.printer.handle('match list', Namespace(mod_key=mod_key, mods=mods))
                 return
 
-        im.run(carrot, args)
+        self.installer.run(carrot, args)
 
         self.save_carrot(carrot)
-
 
     def update(self, args):
         carrot = self.read_carrot()
         if not carrot:
-            print('Mod repo not initialized. Use "carrot init".')
+            self.printer.handle('error no_repo')
             return
-
-        im = InstallationManager()
 
         if args.mod_key:
             local_mod = find_mod_by_key(carrot.mods, args.mod_key)
 
             if not local_mod:
-                print(f'No mod matching exactly the key "{clr.mod_key(args.mod_key)}" is currently installed.')
+                self.printer.handle('error mod_not_installed', Namespace(mod_key=args.mod_key))
                 return
 
             if args.channel:
@@ -176,7 +151,7 @@ class CarrotService:
             else:
                 channel = local_mod.file.release_type
 
-            im.queue_fetch(FetchRequest(
+            self.installer.queue_fetch(FetchRequest(
                 mod_key=args.mod_key,
                 mc_version=carrot.mc_version,
                 channel=channel,
@@ -185,7 +160,7 @@ class CarrotService:
 
         else:
             if not carrot.mods:
-                print(f'No mods are installed. Use "{clr.cli("carrot install")}" to install some.')
+                self.printer.handle('error no_mods_installed')
                 return
 
             for mod in carrot.mods:
@@ -195,7 +170,7 @@ class CarrotService:
                     channel = mod.file.release_type
 
                 if not mod.dependency:
-                    im.queue_fetch(FetchRequest(
+                    self.installer.queue_fetch(FetchRequest(
                         mod_key=mod.key,
                         mc_version=carrot.mc_version,
                         channel=channel,
@@ -203,20 +178,73 @@ class CarrotService:
                     ))
                     # TODO: How to purge dependencies that are no longer valid?
 
-        im.run(carrot, args)
+        self.installer.run(carrot, args)
         self.save_carrot(carrot)
+
+    def enable(self, args):
+        # TODO: Dependency handling
+        carrot = self.read_carrot()
+        if not carrot:
+            self.printer.handle('error no_repo')
+            return
+
+        for mod_key in args.mod_key:
+            local_mod = find_mod_by_key(carrot.mods, mod_key)
+
+            if not local_mod:
+                self.printer.handle('error mod_not_installed', Namespace(mod_key=mod_key))
+                continue
+
+            if not os.path.exists(local_mod.file.file_name + '.disabled'):
+                if os.path.exists(local_mod.file.file_name):
+                    self.printer.handle('warn mod_already_enabled', Namespace(mod=local_mod))
+                    continue
+
+                self.printer.handle('error mod_file_missing', Namespace(mod=local_mod))
+                continue
+
+            os.replace(local_mod.file.file_name + '.disabled', local_mod.file.file_name)
+
+            self.printer.handle('mod_enabled', Namespace(mod=local_mod))
+
+    def disable(self, args):
+        # TODO: Lots of code sharing with enable()
+        carrot = self.read_carrot()
+        if not carrot:
+            self.printer.handle('error no_repo')
+            return
+
+        for mod_key in args.mod_key:
+            local_mod = find_mod_by_key(carrot.mods, mod_key)
+
+            if not local_mod:
+                self.printer.handle('error mod_not_installed', Namespace(mod_key=mod_key))
+                continue
+
+            if not os.path.exists(local_mod.file.file_name):
+                if os.path.exists(local_mod.file.file_name + '.disabled'):
+                    self.printer.handle('warn mod_already_disabled', Namespace(mod=local_mod))
+                    continue
+
+                self.printer.handle('error mod_file_missing', Namespace(mod=local_mod))
+                continue
+
+            os.replace(local_mod.file.file_name, local_mod.file.file_name + '.disabled')
+
+            self.printer.handle('mod_disabled', Namespace(mod=local_mod))
+
+    def search(self, args):
+        return self.backend.search(**vars(args))
 
 
 class InstallationManager:
-    def __init__(self):
-        self.backend = BackendService()
+    def __init__(self, backend_service, printer):
+        self.backend = backend_service
+        self.printer = printer
 
         self.fetch_q = Queue()
         self.download_q = Queue()
         self.install_q = Queue()
-
-        self._download_hist = set()
-        self._install_hist = set()
 
     def queue_fetch(self, request: FetchRequest):
         self.fetch_q.put(item=request)
@@ -232,81 +260,76 @@ class InstallationManager:
             req = self.fetch_q.get()
             self.do_fetch(req, carrot, args)
 
-        print('Mod check phase complete. Proceeding to download...')
+        self.printer.handle('info all_mod_check_complete')
+
+        self._download_hist = set()
 
         while not self.download_q.empty():
             req = self.download_q.get()
             self.do_download(req, carrot, args)
 
-        print('Download phase complete. Proceeding to installation...')
+        self.printer.handle('info all_mod_fetch_complete')
 
+        self._install_hist = set()
+
+        installed_list = []
         while not self.install_q.empty():
             req = self.install_q.get()
+            installed_list.append(req.mod_info.key)
             self.do_install(req, carrot, args)
 
-        print('Installation phase complete.')
+        self.printer.handle('info all_mod_install_complete', { 'installed_list': installed_list })
 
     def do_fetch(self, req: FetchRequest, carrot: CarrotModel, args):
-        print(f'Checking mod {clr.mod_key(str(req.mod_key))}...', end=' ')
-
         mod_info = self.backend.get_mod_info(req.mod_key)
 
         if not mod_info.key:
-            print(clr.error('Not found!'))
+            self.printer.handle('error mod_key_not_found', Namespace(mod_key=req.mod_key))
             return
 
-        print(f'{clr.mod_name(mod_info.name)}...', end=' ')
+        self.printer.handle('info mod_resolved', Namespace(mod_key=str(req.mod_key), mod=mod_info))
 
         mod_info.file = self.backend.get_newest_file_info(req.mod_key, req.mc_version, req.channel)
 
         current_mod = find_mod_by_key(carrot.mods, mod_info.key)
 
         if not mod_info.file:
-            print('Mod has no files in the chosen channel. Skipping.', end=' ')
-            
+            self.printer.handle('warn no_files_in_channel', Namespace(mod=mod_info))
+
             proceed = False
 
         elif not current_mod:
-            print('New mod.', end=' ')
-
             proceed = True
 
         elif current_mod.file.id < mod_info.file.id:
             if args.upgrade:
-                print('Mod already installed, found new version and will upgrade because it\'s allowed.',
-                      end=' ')
+                self.printer.handle('info will_upgrade_mod', Namespace(mod=mod_info))
 
                 proceed = True
 
             else:
-                print(f'A newer file was found but upgrades are disabled by default. Use the {clr.cli("--upgrade")} option if this should be allowed.',
-                      end=' ')
-
-                if req.dependency:
-                    print(f'\n{clr.emph("NOTE")}: Because this is a dependency, it will {clr.emph("not")} be re-checked if you re-run last install command. Use "{clr.cli("carrot update " + mod_info.key)}" to do it explicitly.',
-                          end=' ')
+                self.printer.handle('warn upgrade_not_allowed', Namespace(mod=mod_info, dependency=req.dependency))
 
                 proceed = False
 
         elif current_mod.file.id == mod_info.file.id:
-            print('Already at newest version.',
-                  end=' ')
+            self.printer.handle('warn already_newest_version', Namespace(mod=mod_info))
 
             proceed = False
 
         else:
             if args.downgrade:
-                print('Mod already installed, found older version and will downgrade because it\'s allowed.',
-                      end=' ')
+                self.printer.handle('info will_downgrade_mod', Namespace(mod=mod_info))
 
                 proceed = True
             else:
-                print(f'An older file was found but downgrades are disabled by default. Use the {clr.cli("--downgrade")} option if this was intended.',
-                      end=' ')
+                self.printer.handle('warn downgrade_not_allowed', Namespace(mod=mod_info))
 
                 proceed = False
 
         if proceed:
+            self.printer.handle('info will_download_mod', Namespace(mod=mod_info))
+
             self.download_q.put(DownloadRequest(
                 mod_info=mod_info,
                 dependency=req.dependency
@@ -318,7 +341,7 @@ class InstallationManager:
             ))
 
             if mod_info.file.mod_dependencies:
-                print('Detected dependencies.', end=' ')
+                self.printer.handle('info dependencies_detected', Namespace(deps=mod_info.file.mod_dependencies))
 
                 for dep in mod_info.file.mod_dependencies:
                     self.queue_fetch(FetchRequest(
@@ -328,13 +351,12 @@ class InstallationManager:
                         dependency=True
                     ))
 
-        print('')
-
     def do_download(self, req: DownloadRequest, carrot: CarrotModel, args):
         if req.mod_info.file.file_name in self._download_hist:
             return
 
-        print(f'Downloading file {clr.file_name(req.mod_info.file.file_name)} from {clr.url(req.mod_info.file.download_url)}...')
+        self.printer.handle('info downloading_file', Namespace(file=req.mod_info.file))
+
         file_contents = self.backend.download_file(req.mod_info.file.download_url)
         self.put_file_in_cache(file_contents, req.mod_info.file.file_name)
         self._download_hist.add(req.mod_info.file.file_name)
@@ -348,13 +370,14 @@ class InstallationManager:
         new_mod.dependency = req.dependency
 
         if not current_mod:
-            print(f'Installing mod {clr.mod_name(req.mod_info.name)} with file {clr.file_name(req.mod_info.file.file_name)}...')
+            self.printer.handle('info installing_mod', Namespace(mod=req.mod_info, new_mod=True))
+
             carrot.mods.append(new_mod)
 
             self.move_file_from_cache_to_content(new_mod.file.file_name)
 
         else:
-            print(f'Updating mod {clr.mod_name(req.mod_info.name)}...', end=' ')
+            self.printer.handle('info installing_mod', Namespace(mod=req.mod_info, new_mod=False))
 
             # Prevent a user-installed mod from becoming a dependency
             if not current_mod.dependency and new_mod.dependency:
@@ -363,15 +386,14 @@ class InstallationManager:
             replace_mod_by_key(carrot.mods, req.mod_info.key, new_mod)
 
             enabled = self.delete_file(current_mod.file.file_name)
-            if enabled:
-                print(f'Installing new file {clr.file_name(req.mod_info.file.file_name)}...', end=' ')
-            else:
-                print(f'Installing new file {clr.file_name(req.mod_info.file.file_name + ".disabled")} because current file was also {clr.file_name(".disabled")}...', end=' ')
+
+            self.printer.handle('info updating_file', Namespace(file=current_mod.file, enabled=enabled))
+
             self.move_file_from_cache_to_content(req.mod_info.file.file_name, enabled)
-            
-            print('')
 
         self._install_hist.add(req.mod_info.file.file_name)
+
+        self.printer.handle('info mod_install_complete', Namespace(mod=new_mod))
 
     def put_file_in_cache(self, content: bytes, file_name: str):
         if not os.path.exists('.carrot_cache'):

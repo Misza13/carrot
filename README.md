@@ -147,7 +147,26 @@ This will display the following information:
  - List mods whose file is missing (disabled or not)
  - List mods whose file is corrupted (MD5 hash does not match the published one)
 
-## Enabled/disabled mods
+## `enable` and `disable` - enable/disable mods
+
+To enable a mod, use
+
+    carrot enable MOD_KEY
+
+Many mod keys can be specified at the same time, e.g.:
+
+    carrot enable rftools rftools-dimensions
+
+Similarly,
+
+    carrot disable MOD_KEY
+
+will disable a mod (or many mods, if more than one is specified).
+
+Be aware that as of now, dependencies are not disabled/enabled along with the
+main mod and have to be toggled manually.
+
+### Enabled/disabled mods
 
 Carrot does not store the enabled/disabled status of mods in `mods.json` and
 only looks at the file's name to determine the status. This way, it should be
@@ -157,9 +176,25 @@ convention of disabling mods by appending `.disabled` to their file names.
 When installing/updating mods, Carrot will preserve the status, i.e. a disabled
 mod will remain disabled after an update and you have to enable it manually.
 
+## `web-gui` - launch a web user interface
+
+To start a web-based interface, simply type:
+
+    carrot web-gui
+
+Carrot comes with an internal webserver that will launch with this command.
+By default (that is, unless overridden by the `--host` and `--port` options),
+it will listen on http://localhost:8877/ - just point your browser to that
+address.
+
+In the `web-gui` you should be able to perform most of the tasks available
+purely from the command line. Thus far missing are:
+- `update`
+- `install` with a specific `--channel`
+- detailed `status` (beyond just a list of installed mods)
+
 # Future / planned features
 
  - List currently installed mods
  - Uninstall mods (with pruning of unused dependencies)
- - Disable/enable mods (via the `.disabled` convention)
- - Terminal-/web-based GUI mode for more convenient browsing and installing of mods
+ - Align `web-gui` features with CLI

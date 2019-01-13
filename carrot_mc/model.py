@@ -29,11 +29,21 @@ class InstalledModModel(BaseModModel):
         self.dependency = Autoproperty(bool)
 
 
+class InstalledModStatusModel(InstalledModModel):
+    def __init__(self):
+        super().__init__()
+        self.disabled = Autoproperty(bool)
+        self.file_missing = Autoproperty(bool)
+        self.actual_file_md5 = Autoproperty(str)
+
+
 class ModModel(BaseModModel):
     def __init__(self):
         super().__init__()
         self.download_count = Autoproperty(int)
         self.categories = Autoproperty(list, [])
+        self.avatar = Autoproperty(str)
+        self.description = Autoproperty(str)
 
 
 class ModFileModel(Automappable):

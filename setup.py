@@ -15,7 +15,7 @@ setup(
     author_email='misza@misza.net',
     url='https://github.com/Misza13/carrot',
     license='MIT',
-    packages=['carrot_mc'],
+    packages=['carrot_mc', 'carrot_mc.web_gui'],
     entry_points={
         'console_scripts': [
             'carrot = carrot_mc.cli:main'
@@ -23,10 +23,15 @@ setup(
     },
     install_requires=[
         'requests',
+        'Flask',
+        'Flask-SocketIO',
+        'eventlet'
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Topic :: Games/Entertainment'
-    ]
+    ],
+    include_package_data=True,
+    zip_safe=False
 )

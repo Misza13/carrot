@@ -1,0 +1,51 @@
+@import "~bootstrap/dist/css/bootstrap.min.css";
+@import "~titatoggle/dist/titatoggle-dist-min.css";
+
+html {
+    background-color: #222;
+}
+
+body {
+    background-color: #222;
+    color: ivory;
+    font-family: 'Roboto', sans-serif;
+}
+
+body::after {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    z-index: -1;
+    content: url("/static/img/Eclipse_loading.svg") url("/static/img/Spin_loading.svg");
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #555;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #AAA;
+}
+
+span.mod-name {
+    color: yellow;
+}
+
+span.mod-key {
+    color: white;
+    font-weight: bolder;
+    font-family: 'Source Code Pro', monospace;
+}
+
+span.mod-owner {
+    color: limegreen;
+}

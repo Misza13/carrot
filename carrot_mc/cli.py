@@ -1,7 +1,9 @@
 from argparse import ArgumentParser, SUPPRESS
 
-from carrot_mc.carrot import CarrotService
-
+from carrot_mc.backend import BackendService
+from carrot_mc.carrot import CarrotService, InstallationManager
+from carrot_mc.cli_printer import CliEventPrinter
+from carrot_mc.colors import Colorizer as clr
 
 def main():
     commands = [
@@ -9,7 +11,10 @@ def main():
         #ListCommand(),
         InstallCommand(),
         InitCommand(),
-        UpdateCommand()
+        UpdateCommand(),
+        EnableCommand(),
+        DisableCommand(),
+        WebGuiCommand()
     ]
 
     ap = ArgumentParser(prog='carrot')
@@ -28,7 +33,10 @@ def main():
 
 
 class Command(object):
-    carrot_service = CarrotService()
+    cli_printer = CliEventPrinter()
+    backend_service = BackendService()
+    installation_manager = InstallationManager(backend_service, cli_printer)
+    carrot_service = CarrotService(backend_service, installation_manager, cli_printer)
 
     def register_help(self, subparsers):
         raise NotImplementedError()
@@ -48,11 +56,52 @@ class StatusCommand(Command):
 
     def handle_args(self, args):
         if self.carrot_service.initialized():
-            print('Mod repo status: OK')
-            self.carrot_service.status(args)
+            carrot = self.carrot_service.get_status()
+
+            dep_count = 0
+            disabled_count = 0
+            missing_file_err = []
+            bad_md5_err = []
+
+            for mod in carrot.mods:
+                if mod.dependency:
+                    dep_count += 1
+
+                if mod.disabled:
+                    disabled_count += 1
+
+                if mod.file_missing:
+                    missing_file_err.append(mod)
+                else:
+                    if mod.actual_file_md5 != mod.file.file_md5:
+                        bad_md5_err.append(mod)
+
+            print(f'Mods installed: {len(carrot.mods)}')
+
+            if dep_count:
+                print(f'of which dependencies: {dep_count}')
+
+            if disabled_count > 0:
+                print(f'Disabled mod(s): {disabled_count}')
+
+            if len(missing_file_err) + len(bad_md5_err) == 0:
+                print('All mod files seem to be in order.')
+            else:
+                if missing_file_err:
+                    print(f'{len(missing_file_err)} mod(s) have missing files:')
+                    for mod in missing_file_err:
+                        print(f'\t{clr.mod_name(mod.name)}: missing file {clr.file_name(mod.file.file_name)}')
+
+                if bad_md5_err:
+                    print(f'{len(bad_md5_err)} mod(s) have possibly corrupted files:')
+                    for mod in bad_md5_err:
+                        actual_file_name = mod.file.file_name
+                        if mod.disabled:
+                            actual_file_name += '.disabled'
+                        print(f'\t{clr.mod_name(mod.name)}: file {clr.file_name(actual_file_name)} has hash {clr.file_hash(mod.actual_file_md5)} instead of {clr.file_hash(mod.file.file_md5)}')
+
         else:
-            print('Mod repo status: INVALID')
-            print('This directory does not appear to be a valid mod repo.')
+            print(clr.error('This directory does not appear to be a valid mod repo.'))
 
 
 class ListCommand(Command):
@@ -191,6 +240,81 @@ class UpdateCommand(Command):
 
     def handle_args(self, args):
         self.carrot_service.update(args)
+
+
+class EnableCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'enable',
+            help='Enable a mod (by removing its ".disabled" file name suffix).'
+        )
+
+        parser.add_argument(
+            'mod_key',
+            help='"Key" id of a mod to enable.',
+            nargs='+',
+            default=None
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        self.carrot_service.enable(args)
+
+
+class DisableCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'disable',
+            help='Disable a mod (by appending ".disabled" to its file name).'
+        )
+
+        parser.add_argument(
+            'mod_key',
+            help='"Key" id of a mod to disable.',
+            nargs='+',
+            default=None
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        self.carrot_service.disable(args)
+
+
+class WebGuiCommand(Command):
+    def register_help(self, subparsers):
+        parser = subparsers.add_parser(
+            'web-gui',
+            help='Start an interactive web GUI interface for managing mods.'
+        )
+
+        parser.add_argument(
+            '--port',
+            help='TCP port on which the built-in webserver will listen for connections. Default: 8877',
+            default=8877
+        )
+
+        parser.add_argument(
+            '--host',
+            help='Host on which the built-in webserver will listen for connections. '
+                 'Default: localhost/127.0.0.1 (This means it will not be accessible from other computers (RECOMMENDED)). '
+                 'Change to 0.0.0.0 to listen on all available network interfaces '
+                 '(REMEMBER: there is no authentication, so everyone who opens the page will be able to manage your modpack)',
+            default='localhost'
+        )
+
+        parser.set_defaults(func=self.handle_args)
+
+    def handle_args(self, args):
+        import logging
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+
+        print(f'Starting Web GUI on http://{args.host}:{args.port} - open this address in your browser')
+
+        from carrot_mc.web_gui.app import run_socket_app
+        run_socket_app(args)
 
 
 if __name__ == '__main__':
