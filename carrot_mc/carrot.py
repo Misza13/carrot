@@ -243,9 +243,6 @@ class InstallationManager:
         self.download_q = Queue()
         self.install_q = Queue()
 
-        self._download_hist = set()
-        self._install_hist = set()
-
     def queue_fetch(self, request: FetchRequest):
         self.fetch_q.put(item=request)
 
@@ -262,11 +259,15 @@ class InstallationManager:
 
         self.printer.handle('info all_mod_check_complete')
 
+        self._download_hist = set()
+
         while not self.download_q.empty():
             req = self.download_q.get()
             self.do_download(req, carrot, args)
 
         self.printer.handle('info all_mod_fetch_complete')
+
+        self._install_hist = set()
 
         installed_list = []
         while not self.install_q.empty():

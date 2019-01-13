@@ -1,6 +1,8 @@
 from argparse import Namespace
+from functools import wraps
 
 import eventlet
+from eventlet.semaphore import Semaphore
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
@@ -55,6 +57,29 @@ installation_manager = InstallationManager(backend_service, composite_printer)
 carrot_service = CarrotService(backend_service, installation_manager, composite_printer)
 
 
+class RequestQueue:
+    semaphores = dict()
+
+    def __init__(self, name):
+        self.name = name
+        if name not in self.semaphores:
+            self.semaphores[name] = Semaphore()
+
+    def __call__(self, func):
+        @wraps(func)
+        def semaphore_wrapper(*args, **kwargs):
+            sema = self.semaphores[self.name]
+            sema.acquire()
+
+            try:
+                func(*args, **kwargs)
+
+            finally:
+                sema.release()
+
+        return semaphore_wrapper
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -72,14 +97,18 @@ def handle_search(event):
 
 
 @socketio.on('carrot install')
+@RequestQueue('install')
 def handle_install(event):
     carrot_service.install(Namespace(**event, channel=None))
 
 
 @socketio.on('carrot status')
 def handle_carrot_status():
-    carrot = carrot_service.get_status()
-    socketio.emit('carrot status', carrot.to_dict())
+    def get_status():
+        carrot = carrot_service.get_status()
+        socketio.emit('carrot status', carrot.to_dict())
+
+    socketio.start_background_task(target=get_status)
 
 
 @socketio.on('carrot enable')
