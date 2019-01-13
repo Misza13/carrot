@@ -322,6 +322,8 @@ class InstallationManager:
                 proceed = False
 
         if proceed:
+            self.printer.handle('info will_download_mod', Namespace(mod=mod_info))
+
             self.download_q.put(DownloadRequest(
                 mod_info=mod_info,
                 dependency=req.dependency

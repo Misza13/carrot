@@ -74,7 +74,9 @@ export default class InstalledModList extends React.Component {
     };
 
     handleInstallMoreClick = () => {
-        this.props.onInstallMoreClick();
+        if (this.props.onInstallMoreClick) {
+            this.props.onInstallMoreClick();
+        }
     };
 
     requestGetCarrot() {

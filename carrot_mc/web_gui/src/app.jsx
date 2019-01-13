@@ -15,7 +15,8 @@ export default class CarrotApp extends React.Component {
 
         this.state = {
             webListOpen: false,
-            installedMods: []
+            installedMods: [],
+            installingMods: []
         };
     }
 
@@ -32,11 +33,28 @@ export default class CarrotApp extends React.Component {
                     {this.state.webListOpen && <div className="col">
                         <WebModList
                             installedMods={this.state.installedMods}
-                            onCloseClick={this.handleWebCloseClick} />
+                            installingMods={this.state.installingMods}
+                            onCloseClick={this.handleWebCloseClick}
+                            onModInstallClick={this.handleModInstallClick}
+                        />
                     </div>}
                 </div>
             </div>
         );
+    }
+
+    componentDidMount() {
+        const socket = this.context;
+
+        socket.on('info will_download_mod', mod_info => {
+            let installing_mods = this.state.installedMods;
+            installing_mods.push(mod_info.key);
+            this.setState({ installingMods: installing_mods });
+        });
+
+        socket.on('info all_mod_install_complete', () => {
+            socket.emit('carrot status');
+        });
     }
 
     handleInstallMoreClick = () => {
@@ -54,5 +72,10 @@ export default class CarrotApp extends React.Component {
         });
 
         this.setState({ installedMods: mods });
+    };
+
+    handleModInstallClick = (mod) => {
+        const socket = this.context;
+        socket.emit('carrot install', { mod_key: [mod.key] });
     };
 }

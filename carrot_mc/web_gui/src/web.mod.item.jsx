@@ -2,12 +2,9 @@ import React from 'react';
 
 import './web.mod.item.css';
 
-import SocketContext from "./socket.context";
 import ModInfoModal from "./mod.info.modal";
 
 export default class WebModItem extends React.Component {
-    static contextType = SocketContext;
-
     constructor(props) {
         super(props);
 
@@ -71,16 +68,10 @@ export default class WebModItem extends React.Component {
         );
     }
 
-    componentDidMount() {
-        const socket = this.context;
-        socket.on('info all_mod_install_complete', () => {
-            socket.emit('carrot status');
-        });
-    }
-
     handleInstallClick = () => {
-        const socket = this.context;
-        socket.emit('carrot install', { mod_key: [this.props.mod.key] });
+        if (this.props.onInstallClick) {
+            this.props.onInstallClick(this.props.mod);
+        }
     };
 
     openModInfo = () => {
