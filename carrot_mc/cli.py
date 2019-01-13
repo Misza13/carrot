@@ -298,10 +298,10 @@ class WebGuiCommand(Command):
         parser.add_argument(
             '--host',
             help='Host on which the built-in webserver will listen for connections. '
-                 'Default: 127.0.0.1 (This means it will not be accessible from other computers (RECOMMENDED)). '
+                 'Default: localhost/127.0.0.1 (This means it will not be accessible from other computers (RECOMMENDED)). '
                  'Change to 0.0.0.0 to listen on all available network interfaces '
                  '(REMEMBER: there is no authentication, so everyone who opens the page will be able to manage your modpack)',
-            default='127.0.0.1'
+            default='localhost'
         )
 
         parser.set_defaults(func=self.handle_args)
@@ -310,6 +310,8 @@ class WebGuiCommand(Command):
         import logging
         log = logging.getLogger('werkzeug')
         log.setLevel(logging.ERROR)
+
+        print(f'Starting Web GUI on http://{args.host}:{args.port} - open this address in your browser')
 
         from carrot_mc.web_gui.app import run_socket_app
         run_socket_app(args)
