@@ -268,11 +268,13 @@ class InstallationManager:
 
         self.printer.handle('info all_mod_fetch_complete')
 
+        installed_list = []
         while not self.install_q.empty():
             req = self.install_q.get()
+            installed_list.append(req.mod_info.key)
             self.do_install(req, carrot, args)
 
-        self.printer.handle('info all_mod_install_complete')
+        self.printer.handle('info all_mod_install_complete', { 'installed_list': installed_list })
 
     def do_fetch(self, req: FetchRequest, carrot: CarrotModel, args):
         mod_info = self.backend.get_mod_info(req.mod_key)

@@ -46,14 +46,23 @@ export default class CarrotApp extends React.Component {
     componentDidMount() {
         const socket = this.context;
 
-        socket.on('info will_download_mod', mod_info => {
-            let installing_mods = this.state.installedMods;
-            installing_mods.push(mod_info.key);
+        socket.on('info will_download_mod', (info) => {
+            let installing_mods = this.state.installingMods;
+            installing_mods.push(info.mod.key);
             this.setState({ installingMods: installing_mods });
         });
 
-        socket.on('info all_mod_install_complete', () => {
-            socket.emit('carrot status');
+        socket.on('info all_mod_install_complete', (info) => {
+            const installed_list = info.installed_list;
+
+            let installing_mods = this.state.installingMods;
+            _.forEach(installed_list, mod => {
+                installing_mods = _.remove(installing_mods, mod);
+            });
+
+            this.setState({ installingMods: installing_mods }, () => {
+                socket.emit('carrot status');
+            });
         });
     }
 
@@ -75,6 +84,10 @@ export default class CarrotApp extends React.Component {
     };
 
     handleModInstallClick = (mod) => {
+        let installing_mods = this.state.installingMods;
+        installing_mods.push(mod.key);
+        this.setState({ installingMods: installing_mods });
+
         const socket = this.context;
         socket.emit('carrot install', { mod_key: [mod.key] });
     };

@@ -1,14 +1,25 @@
 from argparse import Namespace
 
+import eventlet
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
 from carrot_mc.backend import BackendService
 from carrot_mc.carrot import CarrotService, InstallationManager
+from carrot_mc.cli_printer import CliEventPrinter
 from carrot_mc.data import Automappable
 
 app = Flask(__name__, static_url_path='')
 socketio = SocketIO(app)
+
+
+class CompositePrinter:
+    def __init__(self, printers):
+        self.printers = printers
+
+    def handle(self, event: str, payload=None):
+        for printer in self.printers:
+            printer.handle(event, payload)
 
 
 class SocketEventRouter:
@@ -32,13 +43,16 @@ class SocketEventRouter:
                 converted[k] = v
 
         socketio.emit(event, converted)
+        eventlet.sleep(0) # Force flush
 
 
+cli_printer = CliEventPrinter()
 socket_router = SocketEventRouter()
+composite_printer = CompositePrinter([cli_printer, socket_router])
 
 backend_service = BackendService()
-installation_manager = InstallationManager(backend_service, socket_router)
-carrot_service = CarrotService(backend_service, installation_manager, socket_router)
+installation_manager = InstallationManager(backend_service, composite_printer)
+carrot_service = CarrotService(backend_service, installation_manager, composite_printer)
 
 
 @app.route('/')

@@ -44,16 +44,20 @@ export default class WebModItem extends React.Component {
                                 onClick={this.openModInfo}>
                                 <i className="fas fa-info-circle" />
                             </button>
-                            {!this.props.isInstalled && <button
+                            {!this.props.isInstalled && !this.props.isInstalling && <button
                                 type="button"
                                 className="btn btn-outline-primary btn-sm btn-install"
                                 title="Install"
                                 onClick={this.handleInstallClick}>
                                 <i className="fas fa-download" />
                             </button>}
+                            {this.props.isInstalling && <div
+                                className="btn btn-outline-success btn-sm btn-installing"
+                                title="Installation in progress...">
+                            </div>}
                             {this.props.isInstalled && <div
                                 className="btn btn-outline-success btn-sm"
-                                title="Installed">
+                                title="Mod is installed">
                                 <i className="fas fa-check" />
                             </div>}
                         </div>

@@ -23,3 +23,13 @@
 .help-active {
     cursor: help;
 }
+
+.btn-installing {
+    background-image: url("/static/img/Spin_loading.svg");
+    background-position-x: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    height: 32px;
+    width: 32px;
+}

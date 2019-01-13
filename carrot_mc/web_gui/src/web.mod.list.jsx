@@ -90,6 +90,7 @@ export default class WebModList extends React.Component {
                                 key={mod.key}
                                 mod={mod}
                                 isInstalled={this.isModInstalled(mod.key)}
+                                isInstalling={this.isModInstalling(mod.key)}
                                 onInstallClick={this.handleModInstallClick}
                             />)}
 
@@ -203,7 +204,11 @@ export default class WebModList extends React.Component {
 
     isModInstalled(mod_key) {
         return _.includes(this.props.installedMods, mod_key);
-    };
+    }
+
+    isModInstalling(mod_key) {
+        return _.includes(this.props.installingMods, mod_key);
+    }
 
     handleModInstallClick = (mod) => {
         if (this.props.onModInstallClick) {
