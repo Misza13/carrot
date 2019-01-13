@@ -99,6 +99,13 @@ def send_static(path):
     return send_from_directory('static', path, cache_timeout=-1)
 
 
+@socketio.on('carrot metadata')
+def handle_metadata():
+    result = backend_service.metadata()
+
+    socketio.emit('carrot metadata', result)
+
+
 @socketio.on('carrot search')
 def handle_search(event):
     def do_search(event):

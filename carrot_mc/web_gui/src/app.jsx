@@ -14,6 +14,7 @@ export default class CarrotApp extends React.Component {
         super(props);
 
         this.state = {
+            metadata: null,
             mcVersion: null,
             webListOpen: false,
             installedMods: [],
@@ -24,13 +25,20 @@ export default class CarrotApp extends React.Component {
     render() {
         return (
             <div id="page-container" className="container">
+                {this.state.metadata === null && <div className="row">
+                    <div className="col loading">
+                    </div>
+                </div>}
+
                 <div className="row">
-                    <div className="col">
+                    {this.state.metadata !== null && <div className="col">
                         <InstalledModList
+                            metadata={this.state.metadata}
                             webListOpen={this.state.webListOpen}
                             onInstallMoreClick={this.handleInstallMoreClick}
                             onCarrotStatusChange={this.handleCarrotStatusChange} />
-                    </div>
+                    </div>}
+
                     {this.state.webListOpen && <div className="col">
                         <WebModList
                             mcVersion={this.state.mcVersion}
@@ -47,6 +55,10 @@ export default class CarrotApp extends React.Component {
 
     componentDidMount() {
         const socket = this.context;
+
+        socket.on('carrot metadata', (metadata) => {
+            this.setState({ metadata: metadata });
+        });
 
         socket.on('info will_download_mod', (info) => {
             let installing_mods = this.state.installingMods.slice();
@@ -70,6 +82,8 @@ export default class CarrotApp extends React.Component {
                 installedMods: installed_mods
             });
         });
+
+        socket.emit('carrot metadata');
     }
 
     handleInstallMoreClick = () => {

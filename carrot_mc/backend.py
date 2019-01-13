@@ -7,6 +7,14 @@ API_ENDPOINT = 'https://api.carrot-mc.xyz/prod/'
 
 
 class BackendService:
+    def metadata(self):
+        r = requests.get(
+            url=f'{API_ENDPOINT}metadata',
+            headers=self._get_default_headers()
+        )
+
+        return r.json()['result']
+
     def search(
             self,
             mc_version: str,

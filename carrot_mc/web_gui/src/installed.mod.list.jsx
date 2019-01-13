@@ -14,12 +14,9 @@ export default class InstalledModList extends React.Component {
         this.state = {
             carrot_status: null,
             carrotLoaded: false,
-            availableMcVersions: [
-                "1.12.2",
-                "1.7.10"
-            ], //TODO: hardcoded
+            availableMcVersions: this.props.metadata.mc_versions,
             modpackName: "",
-            selectedMcVersion: "1.12.2" //TODO: load from config
+            selectedMcVersion: this.props.metadata.default_mc_version
         };
     }
 
@@ -68,7 +65,7 @@ export default class InstalledModList extends React.Component {
                                 id="mc_version-select"
                                 value={this.state.selectedMcVersion}
                                 onChange={this.handleMcVersionSelect}>
-                                {this.state.availableMcVersions.map(v =>
+                                {this.props.metadata.mc_versions.map(v =>
                                     <option value={v}>{v}</option>
                                 )}
                             </select>
