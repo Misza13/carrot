@@ -80,6 +80,11 @@ class RequestQueue:
         return semaphore_wrapper
 
 
+def get_carrot_status():
+    carrot = carrot_service.get_status()
+    socketio.emit('carrot status', carrot.to_dict())
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -101,14 +106,12 @@ def handle_search(event):
 def handle_install(event):
     carrot_service.install(Namespace(**event, channel=None))
 
+    socketio.start_background_task(target=get_carrot_status)
+
 
 @socketio.on('carrot status')
 def handle_carrot_status():
-    def get_status():
-        carrot = carrot_service.get_status()
-        socketio.emit('carrot status', carrot.to_dict())
-
-    socketio.start_background_task(target=get_status)
+    socketio.start_background_task(target=get_carrot_status)
 
 
 @socketio.on('carrot enable')

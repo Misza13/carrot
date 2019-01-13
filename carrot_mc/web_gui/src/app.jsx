@@ -49,25 +49,20 @@ export default class CarrotApp extends React.Component {
         socket.on('info will_download_mod', (info) => {
             let installing_mods = this.state.installingMods.slice();
             installing_mods.push(info.mod.key);
-            this.setState({ installingMods: installing_mods });
+
+            this.setState({
+                installingMods: installing_mods
+            });
         });
 
         socket.on('info all_mod_install_complete', (info) => {
             const installed_list = info.installed_list;
 
-            //console.log('info all_mod_install_complete', this.state, installed_list);
-
             let installing_mods = this.state.installingMods.slice();
             _.remove(installing_mods, m => _.includes(installed_list, m));
 
-            //console.log('after remove', this.state, installing_mods);
-
             this.setState({
                 installingMods: installing_mods
-            }, () => {
-                //console.log('after setState', this.state);
-
-                socket.emit('carrot status');
             });
         });
     }
@@ -90,19 +85,13 @@ export default class CarrotApp extends React.Component {
     };
 
     handleModInstallClick = (mod) => {
-        //console.log('handleModInstallClick', this.state);
-
         let installing_mods = this.state.installingMods.slice();
         installing_mods.push(mod.key);
-        this.setState({ installingMods: installing_mods }, () => {
-            this.tryInstall(mod.key);
+        this.setState({
+            installingMods: installing_mods
+        }, () => {
+            const socket = this.context;
+            socket.emit('carrot install', {mod_key: [mod.key]});
         });
     };
-
-    tryInstall(mod_key) {
-        //console.log('tryInstall', this.state);
-
-        const socket = this.context;
-        socket.emit('carrot install', { mod_key: [mod_key] });
-    }
 }
