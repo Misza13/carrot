@@ -16,7 +16,7 @@ export default class InstalledModItem extends React.Component {
     render() {
         return (
             <div className="row mod-info-row">
-                <div className="col-auto mr-auto">
+                <div className="col-8 col-md-9 col-lg-10">
                     <span className="mod-key">[{this.props.mod.key}]</span>
                     <br/>
                     <span className="mod-name">{this.props.mod.name}</span>
@@ -24,10 +24,10 @@ export default class InstalledModItem extends React.Component {
                     <span className="mod-owner">{this.props.mod.owner}</span>
                 </div>
                 <div
-                    className="col-auto"
+                    className="col-4 col-md-3 col-lg-2"
                     title={this.props.mod.disabled ? "Disabled" : "Enabled"}
                     >
-                    <div className="form-check checkbox-slider--b">
+                    <div className="form-check checkbox-slider--b enable-slider">
                         <label>
                             <input
                                 type="checkbox"
