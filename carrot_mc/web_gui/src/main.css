@@ -20,6 +20,22 @@ body::after {
     content: url("/static/img/Eclipse_loading.svg") url("/static/img/Spin_loading.svg");
 }
 
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #555;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #AAA;
+}
+
 span.mod-name {
     color: yellow;
 }
