@@ -61,8 +61,11 @@ export default class CarrotApp extends React.Component {
             let installing_mods = this.state.installingMods.slice();
             _.remove(installing_mods, m => _.includes(installed_list, m));
 
+            let installed_mods = this.state.installedMods.slice().concat(installed_list);
+
             this.setState({
-                installingMods: installing_mods
+                installingMods: installing_mods,
+                installedMods: installed_mods
             });
         });
     }
