@@ -286,7 +286,22 @@ class WebGuiCommand(Command):
     def register_help(self, subparsers):
         parser = subparsers.add_parser(
             'web-gui',
-            help='Start an interactive web GUI interface for managing mods'
+            help='Start an interactive web GUI interface for managing mods.'
+        )
+
+        parser.add_argument(
+            '--port',
+            help='TCP port on which the built-in webserver will listen for connections. Default: 8877',
+            default=8877
+        )
+
+        parser.add_argument(
+            '--host',
+            help='Host on which the built-in webserver will listen for connections. '
+                 'Default: 127.0.0.1 (This means it will not be accessible from other computers (RECOMMENDED)). '
+                 'Change to 0.0.0.0 to listen on all available network interfaces '
+                 '(REMEMBER: there is no authentication, so everyone who opens the page will be able to manage your modpack)',
+            default='127.0.0.1'
         )
 
         parser.set_defaults(func=self.handle_args)
@@ -297,7 +312,7 @@ class WebGuiCommand(Command):
         log.setLevel(logging.ERROR)
 
         from carrot_mc.web_gui.app import run_socket_app
-        run_socket_app()
+        run_socket_app(args)
 
 
 if __name__ == '__main__':

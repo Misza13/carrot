@@ -145,5 +145,5 @@ def handle_carrot_enable(event):
     carrot_service.disable(Namespace(**event))
 
 
-def run_socket_app():
-    socketio.run(app)
+def run_socket_app(args):
+    socketio.run(app, host=args.host, port= args.port)
