@@ -47,13 +47,18 @@ export default class WebModItem extends React.Component {
                                 onClick={this.openModInfo}>
                                 <i className="fas fa-info-circle" />
                             </button>
-                            <button
+                            {!this.props.isInstalled && <button
                                 type="button"
                                 className="btn btn-outline-primary btn-sm btn-install"
                                 title="Install"
                                 onClick={this.handleInstallClick}>
                                 <i className="fas fa-download" />
-                            </button>
+                            </button>}
+                            {this.props.isInstalled && <div
+                                className="btn btn-outline-success btn-sm"
+                                title="Installed">
+                                <i className="fas fa-check" />
+                            </div>}
                         </div>
                     </div>
                     <div className="row">
@@ -84,5 +89,5 @@ export default class WebModItem extends React.Component {
 
     closeModInfo = () => {
         this.setState({ modInfoOpen: false });
-    }
+    };
 }

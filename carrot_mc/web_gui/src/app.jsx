@@ -1,4 +1,5 @@
 import React from 'react';
+import * as _ from 'lodash';
 
 import './app.css';
 
@@ -13,7 +14,8 @@ export default class CarrotApp extends React.Component {
         super(props);
 
         this.state = {
-            webListOpen: false
+            webListOpen: false,
+            installedMods: []
         };
     }
 
@@ -24,11 +26,13 @@ export default class CarrotApp extends React.Component {
                     <div className="col">
                         <InstalledModList
                             webListOpen={this.state.webListOpen}
-                            onInstallMoreClick={this.handleInstallMoreClick} />
+                            onInstallMoreClick={this.handleInstallMoreClick}
+                            onCarrotStatusChange={this.handleCarrotStatusChange} />
                     </div>
                     {this.state.webListOpen && <div className="col">
                         <WebModList
-                            onCloseClick={this.handleWebCloseClick}/>
+                            installedMods={this.state.installedMods}
+                            onCloseClick={this.handleWebCloseClick} />
                     </div>}
                 </div>
             </div>
@@ -41,5 +45,14 @@ export default class CarrotApp extends React.Component {
 
     handleWebCloseClick = () => {
         this.setState({ webListOpen: false });
-    }
+    };
+
+    handleCarrotStatusChange = (carrot_status) => {
+        let mods = [];
+        _.forEach(carrot_status.mods, (mod) => {
+            mods.push(mod.key);
+        });
+
+        this.setState({ installedMods: mods });
+    };
 }

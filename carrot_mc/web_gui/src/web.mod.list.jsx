@@ -1,9 +1,10 @@
 import React from 'react';
+import * as _ from 'lodash';
+
+import './web.mod.list.css';
 
 import WebModItem from './web.mod.item';
 import SocketContext from "./socket.context";
-
-import './web.mod.list.css';
 
 export default class WebModList extends React.Component {
     static contextType = SocketContext;
@@ -84,7 +85,12 @@ export default class WebModList extends React.Component {
 
                 <div className="row">
                     <div className="col web-mods-col" onScroll={this.handleScroll}>
-                        {this.state.mods.map(mod => <WebModItem key={mod.key} mod={mod} />)}
+                        {this.state.mods.map(mod =>
+                            <WebModItem
+                                key={mod.key}
+                                mod={mod}
+                                isInstalled={this.isModInstalled(mod.key)}
+                            />)}
 
                         {this.state.isLoadingMore && <div className="row">
                             <div className="col loading">
@@ -192,5 +198,9 @@ export default class WebModList extends React.Component {
         }, () => {
             this.doSearch();
         });
+    };
+
+    isModInstalled(mod_key) {
+        return _.includes(this.props.installedMods, mod_key);
     };
 }
