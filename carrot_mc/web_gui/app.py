@@ -97,8 +97,11 @@ def send_static(path):
 
 @socketio.on('carrot search')
 def handle_search(event):
-    result = carrot_service.search(Namespace(**event))
-    socketio.emit('carrot search', [r.to_dict() for r in result])
+    def do_search(event):
+        result = carrot_service.search(Namespace(**event))
+        socketio.emit('carrot search', [r.to_dict() for r in result])
+
+    socketio.start_background_task(target=do_search, event=event)
 
 
 @socketio.on('carrot install')
