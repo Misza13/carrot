@@ -55,7 +55,7 @@ export default class WebModList extends React.Component {
                             {/* Search input box */}
                             <input
                                 type="text"
-                                className="form-control"
+                                className="form-control search-box"
                                 value={this.state.searchTerm}
                                 onChange={this.handleSearchInputChange}
                                 onKeyUp={this.handleSearchKeyUp}/>

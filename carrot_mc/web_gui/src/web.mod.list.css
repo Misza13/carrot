@@ -17,3 +17,22 @@
 
     height: 128px;
 }
+
+.web-mods-toolbar .search-box {
+    background-color: #222;
+    border: 1px solid #677;
+}
+
+.web-mods-toolbar .dropdown-menu {
+    background-color: #222;
+    border: 1px solid #677;
+}
+
+.web-mods-toolbar .dropdown-item {
+    color: ivory;
+}
+
+.web-mods-toolbar .dropdown-item:hover {
+    background-color: #677;
+    color: ivory;
+}
