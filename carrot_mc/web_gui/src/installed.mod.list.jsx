@@ -12,7 +12,7 @@ export default class InstalledModList extends React.Component {
         super(props);
 
         this.state = {
-            mods: []
+            carrot_status: null
         };
     }
 
@@ -40,7 +40,8 @@ export default class InstalledModList extends React.Component {
 
                 <div className="row">
                     <div className="col installed-mods-col">
-                        {this.state.mods.map(mod => <InstalledModItem key={mod.key} mod={mod} />)}
+                        {this.state.carrot_status !== null &&
+                         this.state.carrot_status.mods.map(mod => <InstalledModItem key={mod.key} mod={mod} />)}
                     </div>
                 </div>
             </div>
@@ -51,7 +52,10 @@ export default class InstalledModList extends React.Component {
         const socket = this.context;
 
         socket.on('carrot status', carrot_status => {
-            this.setState({ mods: carrot_status.mods });
+            this.setState({ carrot_status: carrot_status });
+            if(this.props.onCarrotStatusChange) {
+                this.props.onCarrotStatusChange(carrot_status);
+            }
         });
 
         socket.on('mod_enabled', () => {
