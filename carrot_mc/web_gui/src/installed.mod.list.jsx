@@ -38,6 +38,12 @@ export default class InstalledModList extends React.Component {
                     </div>
                 </div>
 
+                {this.state.carrot_status !== null && this.state.carrot_status.mods.length === 0 && <div className="row">
+                    <div className="col-auto mr-auto ml-auto">
+                    No mods currently installed.
+                    </div>
+                </div>}
+
                 <div className="row">
                     <div className="col installed-mods-col">
                         {this.state.carrot_status !== null &&
