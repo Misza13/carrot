@@ -195,10 +195,16 @@ purely from the command line. Thus far missing are:
 
 # Future / planned features
 
+## Must-haves for 1.0
+
  - List currently installed mods (in CLI)
+ - `search` (in CLI)
  - Uninstall mods (with pruning of unused dependencies)
  - Accept directory with mods as parameter instead of always using current
  - Align `web-gui` features with CLI
+
+## After 1.0
+
  - Manage multiple instances in the Web GUI
    - Copy/paste entire sets of mods between instances
    - Lists of "favourite" sets of mods for easier modpack creation
