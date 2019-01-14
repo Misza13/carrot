@@ -195,6 +195,11 @@ purely from the command line. Thus far missing are:
 
 # Future / planned features
 
- - List currently installed mods
+ - List currently installed mods (in CLI)
  - Uninstall mods (with pruning of unused dependencies)
+ - Accept directory with mods as parameter instead of always using current
  - Align `web-gui` features with CLI
+ - Manage multiple instances in the Web GUI
+   - Copy/paste entire sets of mods between instances
+   - Lists of "favourite" sets of mods for easier modpack creation
+ - Modpack management - packing/unpacking along with config, resources etc.
