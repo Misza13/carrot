@@ -12,7 +12,8 @@ export default class InstalledModList extends React.Component {
         super(props);
 
         this.state = {
-            carrot_status: null,
+            carrotRead: false,
+            carrotStatus: null,
             carrotLoaded: false,
             availableMcVersions: this.props.metadata.mc_versions,
             modpackName: "",
@@ -33,7 +34,7 @@ export default class InstalledModList extends React.Component {
                                 Refresh
                             </button>
 
-                            {this.state.carrotLoaded && !this.props.webListOpen &&
+                            {this.isCarrotInitialized() && !this.props.webListOpen &&
                             <button
                                 type="button"
                                 className="btn btn-outline-primary"
@@ -44,7 +45,8 @@ export default class InstalledModList extends React.Component {
                     </div>
                 </div>
 
-                {!this.state.carrotLoaded &&
+                {this.state.carrotRead &&
+                 !this.isCarrotInitialized() &&
                 <div className="row">
                     <div className="col">
                         <span>No repository detected. Please choose a name and Minecraft version below to create one.</span>
@@ -81,17 +83,19 @@ export default class InstalledModList extends React.Component {
                     </div>
                 </div>}
 
-                {this.state.carrotLoaded && this.state.carrot_status.mods.length === 0 &&
+                {this.isCarrotInitialized() &&
+                 this.state.carrotStatus.mods.length === 0 &&
                 <div className="row">
                     <div className="col-auto mr-auto ml-auto">
                     No mods currently installed.
                     </div>
                 </div>}
 
-                {this.state.carrotLoaded && this.state.carrot_status.mods.length > 0 &&
+                {this.isCarrotInitialized() &&
+                 this.state.carrotStatus.mods.length > 0 &&
                 <div className="row">
                     <div className="col installed-mods-col">
-                        {this.state.carrot_status.mods.map(mod => <InstalledModItem key={mod.key} mod={mod} />)}
+                        {this.state.carrotStatus.mods.map(mod => <InstalledModItem key={mod.key} mod={mod} />)}
                     </div>
                 </div>}
             </div>
@@ -101,13 +105,13 @@ export default class InstalledModList extends React.Component {
     componentDidMount() {
         const socket = this.context;
 
-        socket.on('carrot status', carrot_status => {
+        socket.on('carrot status', carrotStatus => {
             this.setState({
-                carrotLoaded: !!carrot_status,
-                carrot_status: carrot_status
+                carrotRead: true,
+                carrotStatus: carrotStatus
             }, () => {
                 if(this.props.onCarrotStatusChange) {
-                    this.props.onCarrotStatusChange(carrot_status);
+                    this.props.onCarrotStatusChange(carrotStatus);
                 }
             });
         });
@@ -152,5 +156,9 @@ export default class InstalledModList extends React.Component {
     requestGetCarrot() {
         const socket = this.context;
         socket.emit('carrot status');
+    }
+    
+    isCarrotInitialized() {
+        return this.state.carrotRead && this.state.carrotStatus !== null;
     }
 }
