@@ -201,15 +201,14 @@ address.
 
 In the `web-gui` you should be able to perform most of the tasks available
 purely from the command line. Thus far missing are:
-- `update`
-- `install` with a specific `--channel`
-- detailed `status` (beyond just a list of installed mods)
+ - `update`
+ - `install` with a specific `--channel`
+ - detailed `status` (beyond just a list of installed mods)
 
 # Future / planned features
 
 ## Must-haves for 1.0
 
- - List currently installed mods (in CLI)
  - `search` (in CLI)
  - Uninstall mods (with pruning of unused dependencies)
  - Accept directory with mods as parameter instead of always using current
