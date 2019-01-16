@@ -203,7 +203,6 @@ In the `web-gui` you should be able to perform most of the tasks available
 purely from the command line. Thus far missing are:
  - `update`
  - `install` with a specific `--channel`
- - detailed `status` (beyond just a list of installed mods)
 
 # Future / planned features
 
@@ -211,6 +210,7 @@ purely from the command line. Thus far missing are:
 
  - `search` (in CLI)
  - Uninstall mods (with pruning of unused dependencies)
+ - Fix broken mods (missing/corrupted file)
  - Accept directory with mods as parameter instead of always using current
  - Align `web-gui` features with CLI
 

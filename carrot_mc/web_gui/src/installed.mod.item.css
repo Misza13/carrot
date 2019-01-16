@@ -23,3 +23,7 @@
 .enable-slider {
     float: right;
 }
+
+.msg-error {
+    color: #F44;
+}
