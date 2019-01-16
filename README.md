@@ -147,6 +147,18 @@ This will display the following information:
  - List mods whose file is missing (disabled or not)
  - List mods whose file is corrupted (MD5 hash does not match the published one)
 
+## `list` - display list of installed mods
+
+To see the complete list of installed mods use:
+
+    carrot list
+
+This will not only list all mods installed according to `mods.json` but will also
+display a status of each:
+ - whether file is present or missing,
+ - whether it's `.disabled` or not,
+ - whether MD5 checksum is correct.
+
 ## `enable` and `disable` - enable/disable mods
 
 To enable a mod, use

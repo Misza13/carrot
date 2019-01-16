@@ -59,6 +59,14 @@ class Colorizer:
         return colorify(text, BRIGHT)
     
     @staticmethod
+    def ok(text):
+        return colorify(text, GREEN+BRIGHT)
+    
+    @staticmethod
+    def warn(text):
+        return colorify(text, YELLOW+BRIGHT)
+    
+    @staticmethod
     def error(text):
         return colorify(text, RED+BRIGHT)
     

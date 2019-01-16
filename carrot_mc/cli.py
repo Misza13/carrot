@@ -8,7 +8,7 @@ from carrot_mc.colors import Colorizer as clr
 def main():
     commands = [
         StatusCommand(),
-        #ListCommand(),
+        ListCommand(),
         InstallCommand(),
         InitCommand(),
         UpdateCommand(),
@@ -113,7 +113,35 @@ class ListCommand(Command):
 
         parser.set_defaults(func=self.handle_args)
 
-        # TODO: Implement
+    def handle_args(self, args):
+        if self.carrot_service.initialized():
+            carrot = self.carrot_service.get_status()
+            
+            for mod in carrot.mods:
+                print(f'{clr.mod_name(mod.name)} by {clr.mod_owner(mod.owner)},', end=' ')
+                
+                if not mod.file_missing:
+                    print(f'file {clr.file_name(mod.file.file_name)}', end='')
+                    
+                    if mod.disabled:
+                        print(clr.file_name(".disabled"), end='')
+                    
+                    print(' - ', end='')
+                    
+                    if mod.actual_file_md5 == mod.file.file_md5:
+                        if not mod.disabled:
+                            print(clr.ok('OK'))
+                        else:
+                            print(clr.warn('DISABLED'))
+                    else:
+                        print(clr.error('CORRUPTED'))
+                
+                else:
+                    print(clr.error('FILE MISSING'))
+                    
+        else:
+            print(clr.error('This directory does not appear to be a valid mod repo.'))
+
 
 
 class InitCommand(Command):
