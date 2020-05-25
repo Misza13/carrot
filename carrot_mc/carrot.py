@@ -357,7 +357,14 @@ class InstallationManager:
 
         self.printer.handle('info downloading_file', Namespace(file=req.mod_info.file))
 
-        file_contents = self.backend.download_file(req.mod_info.file.download_url)
+#        file_contents = self.backend.download_file(req.mod_info.file.download_url)
+# API_ENDPOINT = 'https://cursemeta.dries007.net' 
+# QString metaurl = QString("%1/%2/%3.json").arg(metabase, projectIdStr, fileIdStr);
+        awful_hack=self.backend.download_file('https://cursemeta.dries007.net/'+str(req.mod_info.id)+'/'+str(req.mod_info.file.id)+'.json')
+        awful_hack_json=awful_hack.decode('utf8')
+        awful_hack_data=json.loads(awful_hack_json)
+#        print(awful_hack_data)
+        file_contents = self.backend.download_file(awful_hack_data['DownloadURL'])
         self.put_file_in_cache(file_contents, req.mod_info.file.file_name)
         self._download_hist.add(req.mod_info.file.file_name)
 
