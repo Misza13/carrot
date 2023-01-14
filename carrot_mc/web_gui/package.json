@@ -23,7 +23,7 @@
     "style-loader": "^0.23.1",
     "tar": ">=4.4.2",
     "webpack": "^4.28.4",
-    "webpack-cli": "^3.2.1"
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "bootstrap": ">=4.3.1",
